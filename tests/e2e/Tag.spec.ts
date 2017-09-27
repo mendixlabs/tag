@@ -19,18 +19,6 @@ describe("TagInput", () => {
         expect(tagsContainer).toContain(testValue);
     });
 
-    it("should remove a tag if exists", () => {
-        HomePage.open();
-        HomePage.textInput.waitForVisible();
-        HomePage.textInput.click();
-
-        browser.keys("Backspace");
-        HomePage.tagsContainer.waitForVisible();
-        const tagsContainer = HomePage.tagsContainer.getText();
-
-        expect(tagsContainer).toBe("");
-    });
-
     it("should show suggestions when need", () => {
         SuggestionsPage.open();
         SuggestionsPage.TestInput.waitForVisible();
@@ -41,5 +29,17 @@ describe("TagInput", () => {
         const suggestion = SuggestionsPage.suggestionList.getText();
 
         expect(suggestion).toContain(suggestionValue);
+    });
+
+    it("should remove a tag if exists", () => {
+        HomePage.open();
+        HomePage.textInput.waitForVisible();
+        HomePage.textInput.click();
+
+        browser.keys("Backspace");
+        HomePage.tagsContainer.waitForVisible();
+        const tagsContainer = HomePage.tagsContainer.getText();
+
+        expect(tagsContainer).toBe("");
     });
 });
