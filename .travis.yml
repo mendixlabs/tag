@@ -35,5 +35,5 @@ deploy:
   file: dist/release/*
   skip_cleanup: true
   on:
-    repo: jseremba/ReactTags
+    repo: FlockOfBirds/tag
     tags: true
