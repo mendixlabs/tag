@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<widget id="com.mendix.widget.custom.tag.Tag" needsEntityContext="true" xmlns="http://www.mendix.com/widget/1.0/">
+    <name>Tags</name>
+    <description>Display and manipulate tag labels</description>
+    <icon />
+    <properties>
+        <property key="enableSuggestions" type="boolean" defaultValue="false">
+            <caption>Enable suggestions</caption>
+            <category>General</category>
+            <description>Enable usage of suggestions</description>
+        </property>
+        <property key="enableCreate" type="boolean" defaultValue="true">
+            <caption>Enable create</caption>
+            <category>General</category>
+            <description>Enables storing of anew tag</description>
+        </property>
+        <property key="lazyLoad" type="boolean" defaultValue="true">
+            <caption>Lazy load suggestions</caption>
+            <category>General</category>
+            <description>When true, suggestions are only loaded on swipe and on show, Otherwise, all tabs are loaded initially</description>
+        </property>
+        <property key="tagLimit" type="integer" defaultValue="0">
+            <caption>Tag limit</caption>
+            <category>General</category>
+            <description>Limits the number of tags that can be added, when 0 the number of tags is not limited</description>
+        </property>
+        <property key="tagStyle" type="enumeration" defaultValue="default">
+            <caption>Tag style</caption>
+            <category>Appearance</category>
+            <description>Color to apply to the tags</description>
+            <enumerationValues>
+                <enumerationValue key="default">Default</enumerationValue>
+                <enumerationValue key="primary">Primary</enumerationValue>
+                <enumerationValue key="success">Success</enumerationValue>
+                <enumerationValue key="info">Info</enumerationValue>
+                <enumerationValue key="inverse">Inverse</enumerationValue>
+                <enumerationValue key="warning">Warning</enumerationValue>
+                <enumerationValue key="danger">Danger</enumerationValue>
+            </enumerationValues>
+        </property>
+        <property key="inputPlaceholder" type="string" required="false" defaultValue="Add a tag">
+            <caption>Placeholder</caption>
+            <category>Appearance</category>
+            <description>Add input placeholder</description>
+        </property>
+        <property key="tagLimitMessage" type="translatableString">
+            <caption>Tag limit message</caption>
+            <category>Appearance</category>
+            <description/>
+            <translations>
+                <translation lang="en_US">Only {limit} amount of tags are allowed</translation>
+                <translation lang="nl_NL">Alleen {limit} hoeveelheid tags zijn toegestaan</translation>
+            </translations>
+        </property>
+        <property key="editable" type="enumeration" defaultValue="default">
+            <caption>Editable</caption>
+            <category>Data source</category>
+            <description>The default option is based on the page settings and the attribute's write access</description>
+            <enumerationValues>
+                <enumerationValue key="default">Default</enumerationValue>
+                <enumerationValue key="never">Never</enumerationValue>
+            </enumerationValues>
+        </property>
+        <property key="tagEntity" type="entity" required="true">
+            <caption>Tag entity</caption>
+            <category>Data source</category>
+            <description>The entity from which tags will be retrieved</description>
+        </property>
+        <property key="tagAttribute" type="attribute" entityProperty="tagEntity" required="true">
+            <caption>Tag attribute</caption>
+            <category>Data source</category>
+            <description>The attribute that holds the tags</description>
+            <attributeTypes>
+                <attributeType name="String" />
+            </attributeTypes>
+        </property>
+        <property key="tagConstraint" type="entityConstraint" entityProperty="tagEntity" required="false">
+            <caption>Tag XPath constraint</caption>
+            <category>Data source</category>
+            <description>The constraint to the tags entity</description>
+        </property>
+        <property key="afterCreateMicroflow" type="microflow" required="false">
+            <caption>After create microflow</caption>
+            <category>Events</category>
+            <description>Microflow to call after the tag has been created</description>
+            <returnType type="Void"/>
+        </property>
+        <property key="onChangeMicroflow" type="microflow" required="false">
+            <caption>On change microflow</caption>
+            <category>Events</category>
+            <description>Microflow to trigger when the editor is changed</description>
+            <returnType type="Void"/>
+        </property>
+    </properties>
+</widget>
