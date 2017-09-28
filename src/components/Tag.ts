@@ -19,7 +19,6 @@ export interface TagProps {
     inputPlaceholder: string;
     lazyLoad?: boolean;
     lazyLoadTags?: () => void;
-    onRemove?: (tagName: string) => void;
     readOnly?: boolean;
     showError: (message: string) => void;
     style?: object;
@@ -90,12 +89,6 @@ export class Tag extends Component<TagProps, TagState> {
         );
     }
 
-    componentWillReceiveProps(newProps: TagProps) {
-        this.setState({
-            tags: newProps.tags.slice(0, 2)
-        });
-    }
-
     private handleChangeInput(tag: string) {
         const { tagLimit, tagLimitMessage, showError } = this.props;
         if (tagLimit === 0) {
@@ -130,22 +123,20 @@ export class Tag extends Component<TagProps, TagState> {
     }
 
     private addTag(tag: string) {
-        const { enableCreate, tagLimit, tagLimitMessage, createTag, showError } = this.props;
-        if (tagLimit === 0 || tagLimit > (this.state.tags).length) {
-            this.state.tags.push(tag);
-            this.setState({ tags: this.state.tags });
-            if (enableCreate && createTag && tag !== " ") {
+        const { enableCreate, tags, tagLimit, tagLimitMessage, createTag } = this.props;
+        if (tagLimit === 0 || tagLimit > this.state.tags.length) {
+            if (enableCreate && createTag && tags.indexOf(tag) === -1 && this.state.tags.indexOf(tag) === -1) {
                 createTag(tag);
             }
+            this.state.tags.push(tag);
+            this.setState({ tags: this.state.tags });
         } else {
-            showError(tagLimitMessage.replace("{limit}", `${tagLimit}`));
+            this.props.showError(tagLimitMessage.replace("{limit}", `${tagLimit}`));
         }
     }
 
     private handleChange(tags: string[], changed: string[]) {
-        const { onRemove } = this.props;
-        if (onRemove && this.state.tags.length > tags.length) {
-            onRemove(changed[0]);
+        if (this.state.tags.length > tags.length) {
             this.setState({ tags });
         } else {
             this.addTag(changed[0]);

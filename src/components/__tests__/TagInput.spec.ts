@@ -85,7 +85,6 @@ describe("TagInput", () => {
         tagInput = renderTag(newProps);
 
         const tagInstance = tagInput.instance() as any;
-        tagInstance.componentWillReceiveProps(newProps);
         tagInstance.handleChangeInput(newProps.tagValue);
         tagInstance.handleChange(changedTags, currentTags);
         tagInstance.addTag("Netherland");
@@ -107,7 +106,6 @@ describe("TagInput", () => {
 
         const tagInstance = tagInput.instance() as any;
         tagInstance.autosuggest();
-        tagInstance.componentWillReceiveProps(newProps);
 
         expect(tagInput.state().tags).toEqual([]);
     });

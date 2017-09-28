@@ -48,7 +48,6 @@ class TagContainer extends Component<TagContainerProps, TagState> {
         this.createTag = this.createTag.bind(this);
         this.lazyLoadTags = this.lazyLoadTags.bind(this);
         this.handleSubscriptions = this.handleSubscriptions.bind(this);
-        this.removeTag = this.removeTag.bind(this);
         this.showErrorMessage = this.showErrorMessage.bind(this);
     }
 
@@ -63,7 +62,6 @@ class TagContainer extends Component<TagContainerProps, TagState> {
             inputPlaceholder: (this.props.inputPlaceholder !== " ") ? this.props.inputPlaceholder : " ",
             lazyLoad: this.props.lazyLoad,
             lazyLoadTags: this.lazyLoadTags,
-            onRemove: this.removeTag,
             readOnly: this.isReadOnly(),
             showError: this.showErrorMessage,
             style: TagContainer.parseStyle(this.props.style),
@@ -185,25 +183,6 @@ class TagContainer extends Component<TagContainerProps, TagState> {
             },
             entity: tagEntity,
             error: error => window.mx.ui.error(`Error creating tag object ${tagEntity}, ${error.message}`)
-        });
-    }
-
-    private removeTag(name: string) {
-        mx.data.get({
-            callback: (MxObject) => {
-                if (MxObject !== []) {
-                    mx.data.remove({
-                        callback: () => undefined,
-                        error: (error) => (`${error.message}`),
-                        guid: MxObject[0].getGuid()
-                    });
-                    if (this.props.onChangeMicroflow) {
-                        this.executeAction(this.props.onChangeMicroflow, MxObject[0].getGuid());
-                    }
-                }
-            },
-            error: (error) => (`${error.message}`),
-            xpath: `//${this.props.tagEntity}[ ${this.props.tagAttribute} = '${name}' ]`
         });
     }
 
