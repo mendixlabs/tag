@@ -2,7 +2,11 @@ class Suggestions {
     public get TestInput() { return browser.element(".react-autosuggest__input"); }
     public get suggestionList() { return browser.element(".react-autosuggest__suggestions-list"); }
 
-    public open(): void {
+    public openCreate(): void {
+        browser.url("/p/create");
+    }
+
+    public openSuggestion(): void {
         browser.url("/p/suggestions");
     }
 }
