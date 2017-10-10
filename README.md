@@ -23,15 +23,15 @@ Place the widget in a data view, with a data source that has attributes for the 
 
 Enable creation, lazyloading, suggestions and set taglimit
 
-![General](assets/General.png)
+![General](assets/General.PNG)
 
 Add limit message, placeholder and tag style.
 
-![Appearance](assets/Appearance.png)
+![Appearance](assets/Appearance.PNG)
 
 Add tag entity and tag attribute.
 
-![Datasource](assets/DataSources.png)
+![Datasource](assets/DataSources.PNG)
 
 ## Issues, suggestions and feature requests
 We are actively maintaining this widget, please report any issues or suggestion for improvement at https://github.com/mendixlabs/tag/issues
