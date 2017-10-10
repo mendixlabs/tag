@@ -16,8 +16,22 @@ Mendix 7.6
 ## Demo project
 https://tag100.mxapps.io
 
+![Demo](assets/Demo.gif)
+
 ## Usage
-Place the widget in a data view, with a data source that has attributes for tag and suggestions
+Place the widget in a data view, with a data source that has attributes for the tag
+
+Enable creation, lazyloading, suggestions and set taglimit
+
+![General](assets/General.png)
+
+Add limit message, placeholder and tag style.
+
+![Appearance](assets/Appearance.png)
+
+Add tag entity and tag attribute.
+
+![Datasource](assets/DataSources.png)
 
 ## Issues, suggestions and feature requests
 We are actively maintaining this widget, please report any issues or suggestion for improvement at https://github.com/mendixlabs/tag/issues
