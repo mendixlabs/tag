@@ -2,21 +2,54 @@
     .widget-tag {
         position: relative;
 
+        .react-tagsinput {
+            border: 1px solid #D7D7D7;
+            border-radius: 4px;
+            padding-top: 4px;
+        }
+
+        .react-tagsinput-input {
+            display: inline;
+            width: auto;
+            transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+            color: #555555;
+            background-color: #FFF;
+            background-image: none;
+            box-shadow: none;
+            font-size: 14px;
+            margin-bottom: 4px;
+            margin-top: 1px;
+            padding: 4px;
+        }
+
+        .react-tagsinput-tag {
+            border-radius: 3px;
+            border: none;
+            padding: 4px;
+        }
+
+        .react-tagsinput--focused {
+            border-color: #0595DB;
+        }
+
         .react-autosuggest__input {
             background: transparent;
-            border: 0;
+            border: none;
+            border-style: none;
             color: #777;
             font-family: sans-serif;
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 400;
             margin-bottom: 6px;
             margin-top: 1px;
             outline: none;
-            padding: 5px;
+            padding: none;
         }
 
         .react-autosuggest__input--focused {
-            border-color: #a5d24a;
+            .react-tagsinput {
+                border-color: #0595DB;
+            }
         }
 
         .react-autosuggest__input--open {
