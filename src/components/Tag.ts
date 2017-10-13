@@ -62,6 +62,10 @@ export class Tag extends Component<TagProps, TagState> {
     }
 
     render() {
+        const inputProps = {
+            className: "react-tagsinput-input",
+            placeholder: this.props.inputPlaceholder
+        };
         return createElement("div",
             {
                 className: classNames(
@@ -72,8 +76,10 @@ export class Tag extends Component<TagProps, TagState> {
                 style: this.props.style
             },
             createElement(TagsInput, {
+                addOnBlur: true,
                 addOnPaste: true,
                 disabled: this.props.readOnly,
+                inputProps,
                 inputValue: this.state.tag,
                 onChangeInput: this.handleChangeInput,
                 maxTags: this.props.tagLimit === 0 ? 1000 : this.props.tagLimit,

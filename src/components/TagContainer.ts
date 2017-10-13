@@ -59,7 +59,7 @@ class TagContainer extends Component<TagContainerProps, TagState> {
             createTag: this.createTag,
             enableCreate: this.props.enableCreate,
             enableSuggestions: this.props.enableSuggestions,
-            inputPlaceholder: (this.props.inputPlaceholder !== " ") ? this.props.inputPlaceholder : " ",
+            inputPlaceholder: this.props.inputPlaceholder,
             lazyLoad: this.props.lazyLoad,
             lazyLoadTags: this.lazyLoadTags,
             readOnly: this.isReadOnly(),
