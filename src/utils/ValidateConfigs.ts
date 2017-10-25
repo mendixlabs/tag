@@ -1,6 +1,6 @@
 import { Component, ReactElement, createElement } from "react";
-import { TagContainerProps } from "./TagContainer";
-import { Alert } from "./Alert";
+import { TagContainerProps } from "../components/TagContainer";
+import { Alert } from "../components/Alert";
 
 export class ValidateConfigs extends Component<TagContainerProps & { showOnError: boolean }, {}> {
     render() {

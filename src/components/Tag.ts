@@ -14,47 +14,39 @@ export interface TagProps {
     tagStyle?: BootstrapStyle;
     className?: string;
     createTag?: (tag: string) => void;
-    enableCreate?: boolean;
     enableSuggestions?: boolean;
+    onRemove?: (tag: string) => void;
     inputPlaceholder: string;
     lazyLoad?: boolean;
     lazyLoadTags?: () => void;
+    newTag: string;
     readOnly?: boolean;
     showError: (message: string) => void;
     style?: object;
+    suggestions?: string[];
     tagLimit: number;
     tagLimitMessage: string;
-    tags: string[];
-    tagValue: string;
+    tagList: string[];
 }
 
 interface TagState {
     alertMessage?: string;
-    tag: string;
-    tags: string[];
+    newTag: string;
+    tagList: string[];
 }
 
 export type BootstrapStyle = "primary" | "inverse" | "success" | "info" | "warning" | "danger";
 
 export class Tag extends Component<TagProps, TagState> {
-    static defaultProps: TagProps = {
-        tags: [],
-        inputPlaceholder: "Add a tag",
-        showError: () => undefined,
-        tagStyle: "primary",
-        tagLimit: 0,
-        tagLimitMessage: "",
-        tagValue: ""
-    };
+
     constructor(props: TagProps) {
         super(props);
 
         this.state = {
             alertMessage: props.alertMessage,
-            tag: this.props.tagValue,
-            tags: props.tags
+            newTag: this.props.newTag,
+            tagList: props.tagList
         };
-        this.addTag = this.addTag.bind(this);
         this.autosuggest = this.autosuggest.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleChangeInput = this.handleChangeInput.bind(this);
@@ -64,7 +56,7 @@ export class Tag extends Component<TagProps, TagState> {
     render() {
         const inputProps = {
             className: "react-tagsinput-input",
-            placeholder: this.props.inputPlaceholder
+            placeholder: !this.props.readOnly ? this.props.inputPlaceholder : " "
         };
         return createElement("div",
             {
@@ -80,12 +72,12 @@ export class Tag extends Component<TagProps, TagState> {
                 addOnPaste: true,
                 disabled: this.props.readOnly,
                 inputProps,
-                inputValue: this.state.tag,
+                inputValue: this.state.newTag,
                 onChangeInput: this.handleChangeInput,
-                maxTags: this.props.tagLimit === 0 ? 1000 : this.props.tagLimit,
+                maxTags: this.props.tagLimit === 0 ? undefined : this.props.tagLimit,
                 onChange: this.handleChange,
                 renderInput: this.props.enableSuggestions ? this.autosuggest : undefined,
-                value: this.state.tags
+                value: this.state.tagList
             }),
             createElement(Alert, {
                 bootstrapStyle: "danger",
@@ -95,27 +87,36 @@ export class Tag extends Component<TagProps, TagState> {
         );
     }
 
-    private handleChangeInput(tag: string) {
+    componentWillReceiveProps(newProps: TagProps) {
+        if (newProps.tagList !== this.props.tagList) {
+            this.setState({ tagList: newProps.tagList });
+        }
+    }
+
+    private handleChangeInput(newTag: string) {
         const { tagLimit, tagLimitMessage, showError } = this.props;
         if (tagLimit === 0) {
-            this.setState({ tag });
-        } else if (this.state.tags.length >= tagLimit) {
+            this.setState({ newTag });
+        } else if (this.state.tagList.length >= tagLimit) {
             showError(tagLimitMessage.replace("{limit}", `${tagLimit}`));
-            this.setState({ tag: "" });
+            this.setState({ newTag: "" });
         } else {
-            this.setState({ tag });
+            this.setState({ newTag });
         }
     }
 
     private getSuggestions(): Suggestion[] {
-        const suggestions: Suggestion[] = this.props.tags.map(tag => ({
-            name: tag,
-            newValue: "",
-            suggestionValue: "",
-            value: ""
-        }));
+        if (this.props.suggestions) {
+            const suggestions: Suggestion[] = this.props.suggestions.map(suggestion => ({
+                name: suggestion,
+                newValue: "",
+                suggestionValue: "",
+                value: ""
+            }));
 
-        return suggestions;
+            return suggestions;
+        }
+        return [];
     }
 
     private autosuggest() {
@@ -129,21 +130,22 @@ export class Tag extends Component<TagProps, TagState> {
     }
 
     private addTag(tag: string) {
-        const { enableCreate, tags, tagLimit, tagLimitMessage, createTag } = this.props;
-        if (tagLimit === 0 || tagLimit > this.state.tags.length) {
-            if (enableCreate && createTag && tags.indexOf(tag) === -1 && this.state.tags.indexOf(tag) === -1) {
+        const { tagList, tagLimit, tagLimitMessage, createTag } = this.props;
+        if (tagLimit === 0 || tagLimit > this.state.tagList.length) {
+            if (createTag && tagList.indexOf(tag) === -1 && this.state.tagList.indexOf(tag) === -1) {
                 createTag(tag);
             }
-            this.state.tags.push(tag);
-            this.setState({ tags: this.state.tags });
+            this.state.tagList.push(tag);
+            this.setState({ tagList: this.state.tagList });
         } else {
             this.props.showError(tagLimitMessage.replace("{limit}", `${tagLimit}`));
         }
     }
 
-    private handleChange(tags: string[], changed: string[]) {
-        if (this.state.tags.length > tags.length) {
-            this.setState({ tags });
+    private handleChange(tagList: string[], changed: string[]) {
+        if (this.props.onRemove && this.state.tagList.length > tagList.length) {
+            this.props.onRemove(changed[0]);
+            this.setState({ tagList });
         } else {
             this.addTag(changed[0]);
         }

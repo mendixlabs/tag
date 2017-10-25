@@ -1,7 +1,7 @@
 import { Component, createElement } from "react";
 
 import { BootstrapStyle, Tag } from "./Tag";
-import { Suggestion } from "./AutoComplete";
+import { parseStyle } from "../utils/ContainerUtils";
 
 interface WrapperProps {
     class?: string;
@@ -29,26 +29,35 @@ export interface TagContainerProps extends WrapperProps {
 
 export interface TagState {
     alertMessage?: string;
-    suggestions: Suggestion[];
-    tags: string[];
-    tag: string;
+    suggestions: string[];
+    tagList: string[];
+    newTag: string;
 }
 
 class TagContainer extends Component<TagContainerProps, TagState> {
     private subscriptionHandles: number[] = [];
+    private tagEntity: string;
+    private tagAttribute: string;
+    private referenceAttribute: string;
 
     constructor(props: TagContainerProps) {
         super(props);
 
         this.state = {
             suggestions: [],
-            tag: this.getValue(props.tagAttribute, props.mxObject) as string,
-            tags: []
+            newTag: this.getValue(props.tagAttribute, props.mxObject) as string,
+            tagList: []
         };
         this.createTag = this.createTag.bind(this);
-        this.lazyLoadTags = this.lazyLoadTags.bind(this);
         this.handleSubscriptions = this.handleSubscriptions.bind(this);
+        this.lazyLoadTags = this.lazyLoadTags.bind(this);
+        this.processTags = this.processTags.bind(this);
+        this.removeTag = this.removeTag.bind(this);
         this.showErrorMessage = this.showErrorMessage.bind(this);
+
+        this.tagAttribute = props.tagAttribute.split("/")[props.tagAttribute.split("/").length - 1];
+        this.tagEntity = props.tagEntity.split("/")[props.tagEntity.split("/").length - 1];
+        this.referenceAttribute = props.tagEntity.split("/")[0]; // change to .length -1 instead of [0]
     }
 
     render() {
@@ -57,26 +66,27 @@ class TagContainer extends Component<TagContainerProps, TagState> {
             tagStyle: this.props.tagStyle,
             className: this.props.class,
             createTag: this.createTag,
-            enableCreate: this.props.enableCreate,
             enableSuggestions: this.props.enableSuggestions,
             inputPlaceholder: this.props.inputPlaceholder,
             lazyLoad: this.props.lazyLoad,
             lazyLoadTags: this.lazyLoadTags,
+            newTag: this.state.newTag,
+            onRemove: this.removeTag,
             readOnly: this.isReadOnly(),
             showError: this.showErrorMessage,
-            style: TagContainer.parseStyle(this.props.style),
+            style: parseStyle(this.props.style),
+            suggestions: this.state.suggestions,
             tagLimit: this.props.tagLimit,
             tagLimitMessage: this.props.tagLimitMessage,
-            tags: this.state.tags,
-            tagValue: this.state.tag
+            tagList: this.state.tagList
         });
     }
 
     componentWillReceiveProps(newProps: TagContainerProps) {
-        if (newProps.mxObject !== this.props.mxObject) {
-            if (!this.props.lazyLoad) { this.fetchCurrentTags(newProps.mxObject); }
-            this.resetSubscriptions(newProps.mxObject);
+        if (!this.props.lazyLoad) {
+            this.fetchCurrentTags(newProps.mxObject);
         }
+        this.resetSubscriptions(newProps.mxObject);
     }
 
     componentWillUnmount() {
@@ -87,32 +97,14 @@ class TagContainer extends Component<TagContainerProps, TagState> {
         window.mx.ui.error(message);
     }
 
-    public static parseStyle(style = ""): {[key: string]: string} {
-        try {
-            return style.split(";").reduce<{[key: string]: string}>((styleObject, line) => {
-                const pair = line.split(":");
-                if (pair.length === 2) {
-                    const name = pair[0].trim().replace(/(-.)/g, match => match[1].toUpperCase());
-                    styleObject[name] = pair[1].trim();
-                }
-                return styleObject;
-            }, {});
-        } catch (error) {
-            // tslint:disable-next-line no-console
-            console.log("Failed to parse style", style, error);
-        }
-
-        return {};
-    }
-
     private getValue(attribute: string, mxObject?: mendix.lib.MxObject): string {
         return mxObject ? (mxObject.get(attribute) as string) : "";
     }
 
     private isReadOnly() {
-        const { tagAttribute, editable, mxObject, readOnly } = this.props;
+        const { editable, mxObject, readOnly } = this.props;
         if (editable === "default" && mxObject) {
-            return readOnly || mxObject.isReadonlyAttr(tagAttribute);
+            return readOnly || mxObject.isReadonlyAttr(this.tagAttribute);
         }
 
         return true;
@@ -128,7 +120,7 @@ class TagContainer extends Component<TagContainerProps, TagState> {
             }));
 
             this.subscriptionHandles.push(mx.data.subscribe({
-                attr: this.props.tagAttribute,
+                attr: this.tagAttribute,
                 callback: this.handleSubscriptions,
                 guid: mxObject.getGuid()
             }));
@@ -137,7 +129,7 @@ class TagContainer extends Component<TagContainerProps, TagState> {
 
     private handleSubscriptions() {
         this.setState({
-            tag: this.getValue(this.props.tagAttribute, this.props.mxObject) as string
+            newTag: this.getValue(this.tagAttribute, this.props.mxObject) as string
         });
     }
 
@@ -148,31 +140,51 @@ class TagContainer extends Component<TagContainerProps, TagState> {
     }
 
     private fetchCurrentTags(mxObject: mendix.lib.MxObject) {
-        const { tagAttribute, tagConstraint, tagEntity } = this.props;
+        const { tagConstraint } = this.props;
         const constraint = tagConstraint
             ? tagConstraint.replace(/\[\%CurrentObject\%\]/gi, mxObject.getGuid())
             : "";
-        const XPath = "//" + tagEntity + constraint;
+        const XPath = "//" + this.tagEntity + constraint;
         mx.data.get({
             callback: object => {
-                const tagData = object.map(tagObject => ({
-                    value: tagObject.get(tagAttribute) as string
+                const suggestionList = object.map(tagObject => ({
+                    value: tagObject.get(this.tagAttribute) as string
                 }));
-                this.setState({ tags: tagData.map(tag => tag.value) });
+                this.setState({ suggestions: suggestionList.map(suggestion => suggestion.value) });
+                this.processTags(object);
             },
             error: error =>
-                window.mx.ui.error(`An error occurred while retrieving tags via XPath (${tagEntity}): ${error}`),
+                window.mx.ui.error(`An error occurred while retrieving tags via XPath (${this.tagEntity}): ${error}`),
             xpath: XPath
         });
     }
 
+    private processTags(tagObjects: any[]) {
+        const currentTagObjects: mendix.lib.MxObject[] = [];
+        const referenceTags = this.props.mxObject.get(this.referenceAttribute) as string[];
+        tagObjects.map(object => {
+            referenceTags.map(reference => {
+                if (reference === object.getGuid()) {
+                    currentTagObjects.push(object);
+                }
+            });
+        });
+        const tagData = currentTagObjects.map(tagObject => ({ value: tagObject.get(this.tagAttribute) as string }));
+        this.setState({
+            tagList: tagData.map(tag => tag.value)
+        });
+    }
+
     private createTag(tag: string) {
-        const { afterCreateMicroflow, tagAttribute, tagEntity } = this.props;
+        const { afterCreateMicroflow, mxObject } = this.props;
         mx.data.create({
             callback: object => {
-                object.set(tagAttribute, tag);
+                object.set(this.tagAttribute, tag);
                 mx.data.commit({
                     callback: () => {
+                        mxObject.addReference(this.referenceAttribute, object.getGuid());
+                        this.saveTag(mxObject);
+
                         if (afterCreateMicroflow) {
                             this.executeAction(afterCreateMicroflow, object.getGuid());
                         }
@@ -181,8 +193,30 @@ class TagContainer extends Component<TagContainerProps, TagState> {
                     mxobj: object
                 });
             },
-            entity: tagEntity,
-            error: error => window.mx.ui.error(`Error creating tag object ${tagEntity}, ${error.message}`)
+            entity: this.tagEntity,
+            error: error => window.mx.ui.error(`Error creating tag object ${this.tagEntity}, ${error.message}`)
+        });
+    }
+
+    private saveTag(object: mendix.lib.MxObject) {
+        mx.data.commit({
+            mxobj: object,
+            callback: () => undefined
+        });
+    }
+
+    private removeTag(name: string) {
+        const { onChangeMicroflow, mxObject } = this.props;
+        mx.data.get({
+            callback: (object) => {
+                mxObject.removeReferences(this.referenceAttribute, object[0].getGuid() as any);
+                this.saveTag(mxObject);
+                if (onChangeMicroflow) {
+                    this.executeAction(onChangeMicroflow, object[0].getGuid());
+                }
+            },
+            error: (error) => (`${error.message}, and ${error.stack}`),
+            xpath: `//${this.tagEntity}[ ${this.tagAttribute} = '${name}' ]`
         });
     }
 
