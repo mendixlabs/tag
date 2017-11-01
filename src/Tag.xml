@@ -33,13 +33,13 @@
                 <enumerationValue key="danger">Danger</enumerationValue>
             </enumerationValues>
         </property>
-        <property key="inputPlaceholder" type="translatableString">
+        <property key="inputPlaceholder" type="translatableString" required="false">
             <caption>Placeholder</caption>
             <category>Appearance</category>
             <description/>
             <translations>
                 <translation lang="en_US">Add a tag</translation>
-                <translation lang="nl_NL">Get dutch word</translation>
+                <translation lang="nl_NL">Voeg een tag toe</translation>
             </translations>
         </property>
         <property key="tagLimitMessage" type="translatableString">
