@@ -2,7 +2,7 @@
   "name": "tag",
   "widgetName": "Tag",
   "version": "1.0.0",
-  "description": "Display and manipulate tag labels",
+  "description": "Display and manipulate tag",
   "scripts": {
     "build": "grunt release",
     "emit": "tsc",
