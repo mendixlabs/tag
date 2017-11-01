@@ -2,12 +2,12 @@ import { ShallowWrapper, shallow } from "enzyme";
 import { createElement } from "react";
 import * as TagsInput from "react-tagsinput";
 
-import { BootstrapStyle, Tag, TagProps } from "../Tag";
+import { Tag, TagProps } from "../Tag";
 import { Alert } from "../Alert";
 import * as classNames from "classnames";
 
 describe("TagInput", () => {
-    let tagStyle: BootstrapStyle;
+    // let tagStyle: BootstrapStyle;
     const currentTags = [ "Uganda" ];
     const changedTags = [ "Uganda", "Kenya", "Netherland" ];
     const renderTag = (props: TagProps) => shallow(createElement(Tag, props));
@@ -21,26 +21,32 @@ describe("TagInput", () => {
         style: undefined,
         tagLimit: 5,
         tagLimitMessage: "",
-        tags: [ "Uganda" ],
-        tagValue: ""
+        tagList: [ "Uganda" ],
+        newTag: ""
+    };
+
+    const inputProps = {
+        className: "react-tagsinput-input",
+        placeholder: ""
     };
 
     it("renders TagInput structure correctly", () => {
-        tagStyle = "primary";
         const tag = renderTag(defaultProps);
 
         expect(tag).toBeElement(
             createElement("div", {
                 className: classNames(
                     "widget-tag",
-                    `widget-tag-${tagStyle}`,
+                    `widget-tag-primary`,
                     defaultProps.className
                 ),
                 style: defaultProps.style
             },
                 createElement(TagsInput, {
+                    addOnBlur: true,
                     addOnPaste: true,
                     disabled: false,
+                    inputProps,
                     inputValue: "",
                     maxTags: 5,
                     onChangeInput: jasmine.any(Function) as any,
@@ -62,14 +68,14 @@ describe("TagInput", () => {
             lazyLoad: false,
             tagLimit: 5,
             tagLimitMessage: "",
-            tags: [ "Uganda", "Kenya", "Netherland" ],
-            tagValue: ""
+            tagList: [ "Uganda", "Kenya", "Netherland" ],
+            newTag: ""
         };
         tagInput = renderTag(newProps);
         const newTagState = [ "Uganda", "Kenya" ];
-        tagInput.setState({ tags: newTagState });
+        tagInput.setState({ tagList: newTagState });
 
-        expect(tagInput.state().tags.length).toBe(2);
+        expect(tagInput.state().tagList.length).toBe(2);
     });
 
     it("updates tags when they have been added", () => {
@@ -79,17 +85,17 @@ describe("TagInput", () => {
             lazyLoad: false,
             tagLimit: 5,
             tagLimitMessage: "",
-            tags: [ "Uganda" ],
-            tagValue: "Kenya"
+            tagList: [ "Uganda" ],
+            newTag: "Kenya"
         };
         tagInput = renderTag(newProps);
 
         const tagInstance = tagInput.instance() as any;
-        tagInstance.handleChangeInput(newProps.tagValue);
+        tagInstance.handleChangeInput(newProps.newTag);
         tagInstance.handleChange(changedTags, currentTags);
         tagInstance.addTag("Netherland");
 
-        expect(tagInput.state().tags.length).toBe(3);
+        expect(tagInput.state().tagList.length).toBe(3);
     });
 
     it("renders no tags when they are not specified", () => {
@@ -99,36 +105,34 @@ describe("TagInput", () => {
             lazyLoad: false,
             tagLimit: 5,
             tagLimitMessage: "",
-            tags: [ ],
-            tagValue: ""
+            tagList: [ ],
+            newTag: ""
         };
         tagInput = renderTag(newProps);
 
         const tagInstance = tagInput.instance() as any;
         tagInstance.autosuggest();
 
-        expect(tagInput.state().tags).toEqual([]);
+        expect(tagInput.state().tagList).toEqual([]);
     });
 
     it("adds no tags when tag limit is reached", () => {
         const value = "Netherland";
         const newProps: TagProps = {
-            enableCreate: true,
             inputPlaceholder:  "",
             showError: () => undefined,
             createTag: jasmine.any(Function) as any,
             lazyLoad: false,
             tagLimit: 2,
             tagLimitMessage: "",
-            tags: [ "Uganda", "Kenya" ],
-            tagValue: ""
+            tagList: [ "Uganda", "Kenya" ],
+            newTag: ""
         };
         tagInput = renderTag(newProps);
 
         const tagInstance = tagInput.instance() as any;
         tagInstance.handleChangeInput(value);
-        tagInstance.addTag(value);
 
-        expect(tagInput.state().tags.length).toBe(2);
+        expect(tagInput.state().tagList.length).toBe(2);
     });
 });

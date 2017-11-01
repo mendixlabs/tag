@@ -74,6 +74,7 @@ export class Tag extends Component<TagProps, TagState> {
                 inputProps,
                 inputValue: this.state.newTag,
                 onChangeInput: this.handleChangeInput,
+                onlyUnique: true,
                 maxTags: this.props.tagLimit === 0 ? undefined : this.props.tagLimit,
                 onChange: this.handleChange,
                 renderInput: this.props.enableSuggestions ? this.autosuggest : undefined,
@@ -131,7 +132,7 @@ export class Tag extends Component<TagProps, TagState> {
 
     private addTag(tag: string) {
         const { tagList, tagLimit, tagLimitMessage, createTag } = this.props;
-        if (tagLimit === 0 || tagLimit > this.state.tagList.length) {
+        if (tagLimit === 0 || tagLimit + 1 > this.state.tagList.length) {
             if (createTag && tagList.indexOf(tag) === -1 && this.state.tagList.indexOf(tag) === -1) {
                 createTag(tag);
             }

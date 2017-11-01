@@ -34,6 +34,7 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
             suggestions: [],
             value: ""
         };
+        this.hundleKeyDown = this.hundleKeyDown.bind(this);
         this.onChange = this.onChange.bind(this);
         this.getSuggestions = this.getSuggestions.bind(this);
         this.onSuggestionsFetchRequested = this.onSuggestionsFetchRequested.bind(this);
@@ -53,31 +54,26 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
             value
         };
 
-        if (!this.state.lazyLoaded && this.props.lazyLoad) {
-            return createElement("span", {
-                className: "glyphicon glyphicon-refresh glyphicon-refresh-animate",
-                id: "tag-loader"
-            });
-        } else {
-
-            return createElement(Autosuggest, {
-                getSuggestionValue: this.getSuggestionValue,
-                inputProps,
-                onSuggestionSelected: this.onSuggestionSelected,
-                onSuggestionsClearRequested: this.onSuggestionsClearRequested,
-                onSuggestionsFetchRequested: this.onSuggestionsFetchRequested,
-                renderSuggestion: this.renderSuggestion,
-                suggestions
-            });
-        }
+        return createElement(Autosuggest, {
+            getSuggestionValue: this.getSuggestionValue,
+            inputProps,
+            onSuggestionSelected: this.onSuggestionSelected,
+            onSuggestionsClearRequested: this.onSuggestionsClearRequested,
+            onSuggestionsFetchRequested: this.onSuggestionsFetchRequested,
+            renderSuggestion: this.renderSuggestion,
+            suggestions
+        });
     }
 
     componentDidMount() {
-        setTimeout(() => {
-            this.setUpSuggestions(this.props);
-            this.setState({ lazyLoaded: true
-            });
-        }, 3000);
+        const suggestiInput = document.getElementsByClassName("react-autosuggest__input")[0];
+        if (suggestiInput !== undefined && suggestiInput !== null) {
+            document.getElementsByClassName("react-tagsinput")[0].addEventListener("focus", this.hundleFocus);
+            document.getElementsByClassName("react-tagsinput")[0].addEventListener("blur", this.hundleBlur);
+            suggestiInput.addEventListener("focus", this.hundleFocus);
+            suggestiInput.addEventListener("blur", this.hundleBlur);
+            suggestiInput.addEventListener("keydown", this.hundleKeyDown);
+        }
     }
 
     componentWillReceiveProps(newProps: AutoCompleteProps) {
@@ -87,11 +83,17 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         });
     }
 
+    componentWillUnmount() {
+        document.getElementsByClassName("react-tagsinput")[0].removeEventListener("blur");
+        document.getElementsByClassName("react-tagsinput")[0].removeEventListener("focus");
+        document.getElementsByClassName("react-autosuggest__input")[0].removeEventListener("focus");
+        document.getElementsByClassName("react-autosuggest__input")[0].removeEventListener("keydown");
+        document.getElementsByClassName("react-autosuggest__input")[0].removeEventListener("blur");
+    }
+
     private onSuggestionSelected(_event: Event, suggestion: Suggestion) {
         this.props.addTag(suggestion.suggestionValue);
-        this.setState({
-            value: ""
-        });
+        this.setState({ value: "" });
     }
 
     private setUpSuggestions(props: AutoCompleteProps) {
@@ -101,7 +103,6 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
     }
 
     private getSuggestions(suggestion: Suggestion) {
-
         const inputValue = suggestion.value.trim().toLowerCase();
         const inputLength = inputValue.length;
 
@@ -121,21 +122,39 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         }, suggestion.name);
     }
 
-    private onChange = (_event: Event, inputObject: Suggestion) => {
-        this.setState({
-            value: inputObject.newValue
-        });
+    private onChange(_event: Event, inputObject: Suggestion) {
+        this.setState({ value: inputObject.newValue });
     }
 
     private onSuggestionsFetchRequested(suggestion: Suggestion) {
-        this.setState({
-          suggestions: this.getSuggestions(suggestion)
-        });
+        this.setState({ suggestions: this.getSuggestions(suggestion) });
     }
 
     private onSuggestionsClearRequested() {
-        this.setState({
-            suggestions: this.props.suggestions
-        });
+        this.setState({ suggestions: this.props.suggestions });
+    }
+
+    private hundleFocus() {
+        const tagInput = "react-tagsinput--focused";
+        const suggestInput = "react-autosuggest__input--focused";
+        const input = document.getElementsByClassName("react-tagsinput")[0];
+        const input2 = document.getElementsByClassName("react-autosuggest__input")[0];
+        input.classList.add(tagInput);
+        input2.classList.add(suggestInput);
+    }
+
+    private hundleKeyDown() {
+        setTimeout(() => {
+            this.setUpSuggestions(this.props);
+            this.setState({ lazyLoaded: true
+            });
+        }, 1000);
+    }
+
+    private hundleBlur() {
+        const input = document.getElementsByClassName("react-tagsinput")[0];
+        const input2 = document.getElementsByClassName("react-autosuggest__input")[0];
+        input.classList.remove("react-tagsinput--focused");
+        input2.classList.remove("react-autosuggest__input--focused");
     }
 }

@@ -3,7 +3,7 @@ import { Component, createElement } from "react";
 import { Tag, TagProps } from "./components/Tag";
 import { TagContainerProps } from "./components/TagContainer";
 
-import { ValidateConfigs } from "./components/ValidateConfigs";
+import { ValidateConfigs } from "./utils/ValidateConfigs";
 
 declare function require(name: string): string;
 
@@ -18,12 +18,12 @@ export class preview extends Component<TagContainerProps, {}> {
     private transformProps(): TagProps {
 
         return {
-            inputPlaceholder: "",
+            inputPlaceholder: "Add a tag",
             showError: () => undefined,
             tagLimit: 2,
             tagLimitMessage: "",
-            tags: [ "Uganda", "Netherlands" ],
-            tagValue: ""
+            tagList: [ "Example1", "Example2" ],
+            newTag: ""
         };
     }
 }
