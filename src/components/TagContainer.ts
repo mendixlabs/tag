@@ -165,7 +165,7 @@ export default class TagContainer extends Component<TagContainerProps, TagState>
 
     private processTagData(tagObjects: mendix.lib.MxObject[]) {
         const currentTagObjects: mendix.lib.MxObject[] = [];
-        const referenceTags = this.props.mxObject.get(this.referenceAttribute) as string[];
+        const referenceTags = this.props.mxObject.getReferences(this.referenceAttribute) as string[];
         const getSuggestions = tagObjects.map(object => ({ value: object.get(this.tagAttribute) as string }));
 
         tagObjects.map(object => {
