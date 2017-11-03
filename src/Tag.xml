@@ -48,7 +48,7 @@
             <description/>
             <translations>
                 <translation lang="en_US">Only {limit} amount of tags are allowed</translation>
-                <translation lang="nl_NL">Alleen {limit} hoeveelheid tags zijn toegestaan</translation>
+                <translation lang="nl_NL">Maximaal {limit} tags zijn toegestaan</translation>
             </translations>
         </property>
         <property key="editable" type="enumeration" defaultValue="default">
@@ -61,22 +61,22 @@
             </enumerationValues>
         </property>
         <property key="tagEntity" type="entity" isPath="yes" pathType="referenceSet">
-            <caption>Tag entity</caption>
+            <caption>Tag reference entity</caption>
             <category>Data source</category>
-            <description>The entity from which tags will be retrieved</description>
+            <description>The reference set to tags related to the context object</description>
         </property>
-        <property key="tagAttribute" type="attribute" entityProperty="tagEntity" isPath="yes" pathType="referenceSet">
-            <caption>Tag attribute</caption>
+        <property key="tagAttribute" type="attribute" entityProperty="tagEntity">
+            <caption>Tag value attribute</caption>
             <category>Data source</category>
-            <description>The attribute that holds the tags</description>
+            <description>The attribute that holds value that is shown in the tag</description>
             <attributeTypes>
                 <attributeType name="String" />
             </attributeTypes>
         </property>
         <property key="tagConstraint" type="entityConstraint" entityProperty="tagEntity" required="false">
-            <caption>Tag XPath constraint</caption>
+            <caption>Suggestion XPath constraint</caption>
             <category>Data source</category>
-            <description>The constraint to the tags entity</description>
+            <description>Optional constraint lo limit the tag suggestions</description>
         </property>
         <property key="afterCreateMicroflow" type="microflow" required="false">
             <caption>After create microflow</caption>
