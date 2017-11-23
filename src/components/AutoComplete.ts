@@ -3,10 +3,17 @@ import { Component, createElement } from "react";
 import * as Autosuggest from "react-autosuggest";
 
 export interface Suggestion {
+    highlightedSuggestion?: string;
+    method: string;
     name: string;
     newValue: string;
     suggestionValue: string;
     value: string;
+}
+
+export interface SuggestionProperties {
+    query: string;
+    isHighlighted: boolean;
 }
 
 export interface AutoCompleteProps {
@@ -20,7 +27,9 @@ export interface AutoCompleteProps {
 
 interface AutoCompleteState {
     lazyLoaded: boolean;
+    newValue: string;
     suggestions: Suggestion[];
+    suggestionsLazyLoaded: Suggestion[];
     value: string;
 }
 
@@ -31,26 +40,28 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
 
         this.state = {
             lazyLoaded: false,
+            newValue: "",
             suggestions: [],
+            suggestionsLazyLoaded: [],
             value: ""
         };
-        this.hundleKeyDown = this.hundleKeyDown.bind(this);
-        this.onChange = this.onChange.bind(this);
         this.getSuggestions = this.getSuggestions.bind(this);
+        this.getSuggestionValue = this.getSuggestionValue.bind(this);
+        this.renderSuggestion = this.renderSuggestion.bind(this);
+        this.hundleOnChange = this.hundleOnChange.bind(this);
+        this.onSuggestionSelected = this.onSuggestionSelected.bind(this);
         this.onSuggestionsFetchRequested = this.onSuggestionsFetchRequested.bind(this);
         this.onSuggestionsClearRequested = this.onSuggestionsClearRequested.bind(this);
-        this.getSuggestionValue = this.getSuggestionValue.bind(this);
-        this.getSuggestions = this.getSuggestions.bind(this);
-        this.renderSuggestion = this.renderSuggestion.bind(this);
-        this.onSuggestionSelected = this.onSuggestionSelected.bind(this);
+        this.hundleOnblur = this.hundleOnblur.bind(this);
     }
 
     render() {
         const { value, suggestions } = this.state;
-
         const inputProps = {
-            onChange: this.onChange,
+            onBlur: this.hundleOnblur,
+            onChange: this.hundleOnChange,
             placeholder: this.props.inputPlaceholder,
+            type: "search",
             value
         };
 
@@ -65,17 +76,6 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         });
     }
 
-    componentDidMount() {
-        const suggestiInput = document.getElementsByClassName("react-autosuggest__input")[0];
-        if (suggestiInput !== undefined && suggestiInput !== null) {
-            document.getElementsByClassName("react-tagsinput")[0].addEventListener("focus", this.hundleFocus);
-            document.getElementsByClassName("react-tagsinput")[0].addEventListener("blur", this.hundleBlur);
-            suggestiInput.addEventListener("focus", this.hundleFocus);
-            suggestiInput.addEventListener("blur", this.hundleBlur);
-            suggestiInput.addEventListener("keydown", this.hundleKeyDown);
-        }
-    }
-
     componentWillReceiveProps(newProps: AutoCompleteProps) {
         this.setState({
             lazyLoaded: true,
@@ -83,12 +83,38 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         });
     }
 
-    componentWillUnmount() {
-        document.getElementsByClassName("react-tagsinput")[0].removeEventListener("blur");
-        document.getElementsByClassName("react-tagsinput")[0].removeEventListener("focus");
-        document.getElementsByClassName("react-autosuggest__input")[0].removeEventListener("focus");
-        document.getElementsByClassName("react-autosuggest__input")[0].removeEventListener("keydown");
-        document.getElementsByClassName("react-autosuggest__input")[0].removeEventListener("blur");
+    // Calculate suggestions from the input value.
+    private getSuggestions(suggestion: Suggestion) {
+        const inputValue = suggestion.value.trim().toLowerCase();
+        const inputLength = inputValue.length;
+
+        return inputLength === 0 ? [] : this.props.suggestions.filter(suggest =>
+            suggest.name.toLowerCase().slice(0, inputLength) === inputValue
+        );
+    }
+
+    // When suggestion is clicked, Autosuggest needs to populate the input
+    // based on the clicked suggestion. Teach Autosuggest how to calculate the
+    // input value for every given suggestion.
+    private getSuggestionValue(suggestion: Suggestion) {
+        return suggestion.name;
+    }
+
+    private renderSuggestion(suggestion: Suggestion, properties: SuggestionProperties) {
+        properties.isHighlighted = true;
+
+        return createElement("span", {
+            className: ""
+        }, suggestion.name);
+    }
+
+    private hundleOnChange(event: Event, inputObject: Suggestion) {
+        // Lazyload suggestions
+        if (inputObject.method === "enter") {
+            event.preventDefault();
+        } else {
+            this.setState({ value: inputObject.newValue });
+        }
     }
 
     private onSuggestionSelected(_event: Event, suggestion: Suggestion) {
@@ -96,36 +122,7 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         this.setState({ value: "" });
     }
 
-    private setUpSuggestions(props: AutoCompleteProps) {
-        if (props.fetchSuggestions && props.lazyLoad) {
-            props.fetchSuggestions();
-        }
-    }
-
-    private getSuggestions(suggestion: Suggestion) {
-        const inputValue = suggestion.value.trim().toLowerCase();
-        const inputLength = inputValue.length;
-
-        this.setState({ lazyLoaded: true });
-        return inputLength === 0 ? [] : this.props.suggestions.filter(suggest =>
-            suggest.name.toLowerCase().slice(0, inputLength) === inputValue
-        );
-    }
-
-    private getSuggestionValue(suggestion: Suggestion) {
-        return suggestion.name;
-    }
-
-    private renderSuggestion(suggestion: Suggestion) {
-        return createElement("div", {
-            className: ""
-        }, suggestion.name);
-    }
-
-    private onChange(_event: Event, inputObject: Suggestion) {
-        this.setState({ value: inputObject.newValue });
-    }
-
+    // Call this function every time you need to update suggestions in state.
     private onSuggestionsFetchRequested(suggestion: Suggestion) {
         this.setState({ suggestions: this.getSuggestions(suggestion) });
     }
@@ -134,27 +131,17 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         this.setState({ suggestions: this.props.suggestions });
     }
 
-    private hundleFocus() {
-        const tagInput = "react-tagsinput--focused";
-        const suggestInput = "react-autosuggest__input--focused";
-        const input = document.getElementsByClassName("react-tagsinput")[0];
-        const input2 = document.getElementsByClassName("react-autosuggest__input")[0];
-        input.classList.add(tagInput);
-        input2.classList.add(suggestInput);
-    }
+    // Suggestion that was highlighted just before the input lost focus
+    private hundleOnblur(event: Event, suggestion: Suggestion) {
+        // Activate lazyloading if suggestions are set to lazyload
+        const tagInput = event.target as HTMLElement;
 
-    private hundleKeyDown() {
-        setTimeout(() => {
-            this.setUpSuggestions(this.props);
-            this.setState({ lazyLoaded: true
-            });
-        }, 1000);
-    }
+        tagInput.classList.remove("react-autosuggest__input--focused");
+        tagInput.classList.remove("mx-focus");
 
-    private hundleBlur() {
-        const input = document.getElementsByClassName("react-tagsinput")[0];
-        const input2 = document.getElementsByClassName("react-autosuggest__input")[0];
-        input.classList.remove("react-tagsinput--focused");
-        input2.classList.remove("react-autosuggest__input--focused");
+        if (suggestion.highlightedSuggestion) {
+            this.props.addTag(suggestion.highlightedSuggestion);
+            this.setState({ value: "" });
+        }
     }
 }
