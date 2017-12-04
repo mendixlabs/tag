@@ -4,6 +4,38 @@
     <description>Display and manipulate tags</description>
     <icon>iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAh1JREFUOBFjZCAShDY0qACVOiErZ/z37zkyHyc7uKZGNaSmJv3f////YRjI/A8SY8GpCyoB0gzU5Ly6pWX64TNnGM5fvcpgqK3NYGtiwvD3/39GJnwG+JSWqv7+/dtlFVDz379/GV5//MhQkJDACKJB4O+fP4w4XeBVVKQGVOO6pqNjys+fPxmYmZkZNJWVGXaePPlfVlwcbMC/f/+YGMEsNAKkGeg8t419fZN/fP/OwMTICMYgQ0BsEO1dVJTLzMi4C00rA4NHfr66S15e7ndgIL358uX/u69f/3/49u3/p+/f/3/58eP/b6A4SB6kDkOzY2amunNWVv5XoKKXHz/+f/X5M4ohv4DiIHmQOphmZhjDIS1NA+hsry3Tp/d//PABLAz2H9DJIMDFxcXgkp5exPDv344DM2feBAsCCbCsRUqKJtOfP5475s/vff/uHdzPML/z8fExOCcmFv9nYNh2fMGCGzDNIJrZIjZW8/+fP947Fy7sefvmDbIcmM3Hz8/gGBtbyvD//7YTixahaAYpYPnz54/vnmXLOl++egWxGSj4D6yVgUFQUJDBPiqqHBhdW8+tXHkdKoxCMQETwxb70NAKMTExBmCKA2NgWDEICgkxWAPFQfK4NMNN0vL11Vb19Kz+ANR56+XL/x+BNIgPEocrIsQQt7TUlbC0bAIZAqJBfEJ6QPIoKZFbW9sAGFjhDIyMK79evXqBGAMAuPsP791vC+0AAAAASUVORK5CYII=</icon>
     <properties>
+        <property key="tagEntity" type="entity" isPath="yes" pathType="referenceSet">
+            <caption>Tag reference entity</caption>
+            <category>Data source</category>
+            <description>The reference set to tags related to the context object</description>
+        </property>
+        <property key="tagAttribute" type="attribute" entityProperty="tagEntity">
+            <caption>Tag value attribute</caption>
+            <category>Data source</category>
+            <description>The attribute that holds value that is shown in the tag</description>
+            <attributeTypes>
+                <attributeType name="String" />
+            </attributeTypes>
+        </property>
+        <property key="tagConstraint" type="entityConstraint" entityProperty="tagEntity" required="false">
+            <caption>Suggestion XPath constraint</caption>
+            <category>Data source</category>
+            <description>Optional constraint lo limit the tag suggestions</description>
+        </property>
+        <property key="editable" type="enumeration" defaultValue="default">
+            <caption>Editable</caption>
+            <category>Data source</category>
+            <description>The default option is based on the page settings and the attribute's write access</description>
+            <enumerationValues>
+                <enumerationValue key="default">Default</enumerationValue>
+                <enumerationValue key="never">Never</enumerationValue>
+            </enumerationValues>
+        </property>
+        <property key="enableDuplicates" type="boolean" defaultValue="false">
+            <caption>Enable duplicate</caption>
+            <category>General</category>
+            <description>Enable tag input duplication</description>
+        </property>
         <property key="enableSuggestions" type="boolean" defaultValue="false">
             <caption>Enable suggestions</caption>
             <category>General</category>
@@ -50,33 +82,6 @@
                 <translation lang="en_US">Only {limit} amount of tags are allowed</translation>
                 <translation lang="nl_NL">Maximaal {limit} tags zijn toegestaan</translation>
             </translations>
-        </property>
-        <property key="editable" type="enumeration" defaultValue="default">
-            <caption>Editable</caption>
-            <category>Data source</category>
-            <description>The default option is based on the page settings and the attribute's write access</description>
-            <enumerationValues>
-                <enumerationValue key="default">Default</enumerationValue>
-                <enumerationValue key="never">Never</enumerationValue>
-            </enumerationValues>
-        </property>
-        <property key="tagEntity" type="entity" isPath="yes" pathType="referenceSet">
-            <caption>Tag reference entity</caption>
-            <category>Data source</category>
-            <description>The reference set to tags related to the context object</description>
-        </property>
-        <property key="tagAttribute" type="attribute" entityProperty="tagEntity">
-            <caption>Tag value attribute</caption>
-            <category>Data source</category>
-            <description>The attribute that holds value that is shown in the tag</description>
-            <attributeTypes>
-                <attributeType name="String" />
-            </attributeTypes>
-        </property>
-        <property key="tagConstraint" type="entityConstraint" entityProperty="tagEntity" required="false">
-            <caption>Suggestion XPath constraint</caption>
-            <category>Data source</category>
-            <description>Optional constraint lo limit the tag suggestions</description>
         </property>
         <property key="afterCreateMicroflow" type="microflow" required="false">
             <caption>After create microflow</caption>

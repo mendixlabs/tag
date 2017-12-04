@@ -35,7 +35,8 @@ describe("AutoComplete", () => {
             name: "Uganda",
             newValue: "Netherlands",
             suggestionValue: "Uganda",
-            value: "Uganda"
+            value: "Uganda",
+            method: "enter"
         };
         const autoComplete = renderAutoComplete(defaultProps);
 
@@ -63,7 +64,9 @@ describe("AutoComplete", () => {
             addTag: jasmine.any(Function),
             inputPlaceholder:  "",
             lazyLoad: false,
-            suggestions: [ { name: "Canada", value: "Canada", newValue: "Uganda", suggestionValue: "U" } ]
+            suggestions: [ {
+                    name: "Canada", value: "Canada", newValue: "Uganda", suggestionValue: "U", method: "enter"
+                } ]
         };
         const autoComplete = renderAutoComplete(defaultProps);
 

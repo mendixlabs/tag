@@ -1,6 +1,7 @@
 import { Component, createElement } from "react";
 
 import * as Autosuggest from "react-autosuggest";
+// import { changeNode } from "../utils/Utilities";
 
 export interface Suggestion {
     highlightedSuggestion?: string;
@@ -53,6 +54,8 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         this.onSuggestionsFetchRequested = this.onSuggestionsFetchRequested.bind(this);
         this.onSuggestionsClearRequested = this.onSuggestionsClearRequested.bind(this);
         this.hundleOnblur = this.hundleOnblur.bind(this);
+        this.hundleFocus = this.hundleFocus.bind(this);
+        this.hundleEnter = this.hundleEnter.bind(this);
     }
 
     render() {
@@ -76,25 +79,53 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         });
     }
 
+    componentDidMount() {
+        const suggestionInput = document.querySelectorAll(".react-autosuggest__input");
+        const tagContainer = document.querySelectorAll(".react-tagsinput");
+
+        this.addEvents(suggestionInput, "");
+        this.addEvents(tagContainer, "tagContainer");
+    }
+
     componentWillReceiveProps(newProps: AutoCompleteProps) {
         this.setState({
             lazyLoaded: true,
-            suggestions: newProps.suggestions
+            suggestionsLazyLoaded: newProps.suggestions
         });
+    }
+
+    private addEvents(nodes: NodeListOf<Element>, element: string) {
+        for (let i = 0; nodes[i]; i++) {
+            const node = nodes[i] as HTMLElement;
+
+            if (element === "tagContainer") {
+                node.addEventListener("focus", this.hundleFocus);
+                node.addEventListener("click", this.hundleClick);
+            } else {
+                // node.classList.add("form-control");
+                node.addEventListener("keypress", this.hundleEnter);
+                node.addEventListener("focus", this.hundleFocus);
+            }
+        }
     }
 
     // Calculate suggestions from the input value.
     private getSuggestions(suggestion: Suggestion) {
         const inputValue = suggestion.value.trim().toLowerCase();
         const inputLength = inputValue.length;
+        const { suggestionsLazyLoaded } = this.state;
 
+        if (this.props.lazyLoad && suggestionsLazyLoaded.length > 0) {
+            return inputLength === 0 ? [] : suggestionsLazyLoaded.filter(suggest =>
+                suggest.name.toLowerCase().slice(0, inputLength) === inputValue
+            );
+        }
         return inputLength === 0 ? [] : this.props.suggestions.filter(suggest =>
             suggest.name.toLowerCase().slice(0, inputLength) === inputValue
         );
     }
 
-    // When suggestion is clicked, Autosuggest needs to populate the input
-    // based on the clicked suggestion. Teach Autosuggest how to calculate the
+    // When suggestion is clicked, Teach Autosuggest how to calculate the
     // input value for every given suggestion.
     private getSuggestionValue(suggestion: Suggestion) {
         return suggestion.name;
@@ -106,15 +137,6 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         return createElement("span", {
             className: ""
         }, suggestion.name);
-    }
-
-    private hundleOnChange(event: Event, inputObject: Suggestion) {
-        // Lazyload suggestions
-        if (inputObject.method === "enter") {
-            event.preventDefault();
-        } else {
-            this.setState({ value: inputObject.newValue });
-        }
     }
 
     private onSuggestionSelected(_event: Event, suggestion: Suggestion) {
@@ -131,16 +153,64 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         this.setState({ suggestions: this.props.suggestions });
     }
 
-    // Suggestion that was highlighted just before the input lost focus
-    private hundleOnblur(event: Event, suggestion: Suggestion) {
-        // Activate lazyloading if suggestions are set to lazyload
-        const tagInput = event.target as HTMLElement;
+    private hundleOnChange(event: Event, inputObject: Suggestion) {
+        event.preventDefault();
+        if (inputObject.method === "type" && this.props.lazyLoad) {
+            setTimeout(() => {
+                this.fetchSuggestions(this.props);
+                this.setState({ lazyLoaded: true });
+            }, 1000);
+        }
+        this.setState({ value: inputObject.newValue });
+    }
 
-        tagInput.classList.remove("react-autosuggest__input--focused");
-        tagInput.classList.remove("mx-focus");
+    private fetchSuggestions(props: AutoCompleteProps) {
+        if (props.fetchSuggestions && props.lazyLoad) {
+            props.fetchSuggestions();
+        }
+    }
 
-        if (suggestion.highlightedSuggestion) {
-            this.props.addTag(suggestion.highlightedSuggestion);
+    private hundleClick(event: Event) {
+        const tagContainer = event.target as HTMLElement;
+        const suggestionInput = tagContainer.querySelector(".react-autosuggest__input") as HTMLElement;
+
+        if (suggestionInput !== null) {
+            suggestionInput.focus();
+        }
+    }
+
+    private hundleFocus(event: Event) {
+        const suggestionInput = event.target as HTMLElement;
+        const inputContainer = suggestionInput.parentElement as HTMLElement;
+        const tagSpan = inputContainer.parentElement as HTMLElement;
+        const tagContainer = tagSpan.parentElement as HTMLElement;
+
+        tagContainer.classList.add("react-tagsinput--focused");
+        tagContainer.classList.add("form-control");
+    }
+
+    private hundleOnblur(event: Event) {
+        const targetElement = event.target as HTMLElement;
+        const inputContainer = targetElement.parentElement as HTMLElement;
+        const tagSpan = inputContainer.parentElement as HTMLElement;
+        const tagContainer = tagSpan.parentElement as HTMLElement;
+        const focus = "react-tagsinput--focused";
+
+        targetElement.classList.remove("react-autosuggest__input--focused");
+        targetElement.classList.remove("mx-focus");
+
+        tagContainer.classList.add("form-control");
+        if (tagContainer.classList.contains(focus)) {
+            tagContainer.classList.remove(focus);
+        }
+    }
+
+    private hundleEnter(event: Event) {
+        const input = event.target as HTMLInputElement;
+        const keyPress = event as KeyboardEvent;
+
+        if (keyPress.code === "Enter" && keyPress.keyCode === 13 && input.defaultValue !== "") {
+            this.props.addTag(input.defaultValue);
             this.setState({ value: "" });
         }
     }

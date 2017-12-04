@@ -5,25 +5,28 @@
         .react-tagsinput {
             border: 1px solid #D7D7D7;
             border-radius: 4px;
-            padding-top: 4px;
+            padding: 1px 5px;
+            cursor: text;
+            display: block;
         }
 
         .react-tagsinput-input {
             display: inline;
-            transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
             color: #555555;
             background-color: #FFF;
             background-image: none;
             box-shadow: none;
-            font-size: 12px;
-            padding: 0px;
+            font-size: 14px;
+            margin-top: 2px;
             width: auto;
+            padding: 5px 0px;
+            font-family: "Open Sans", sans-serif;
         }
 
         .react-tagsinput-tag {
+            font-family: "Open Sans", sans-serif;
             border-radius: 3px;
             border: none;
-            padding: 4px;
         }
 
         .react-tagsinput--focused {
@@ -33,14 +36,13 @@
         .react-autosuggest__input {
             border: none;
             display: inline;
-            transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
             color: #555555;
             background-color: #FFF;
             background-image: none;
             box-shadow: none;
-            font-size: 16px;
-            padding: 0px;
-            width: auto;
+            font-family: "Open Sans", sans-serif;
+            font-size: 14px;
+            padding: 7px 0px;
         }
 
         .react-autosuggest__input--open {
@@ -49,9 +51,21 @@
         }
 
         .react-autosuggest__suggestions-list {
-            margin: 0;
-            padding: 0;
+            z-index: 1;
             list-style-type: none;
+            position: relative;
+            width: auto;
+            margin: 0 auto;
+            padding: 1px;
+            background: #ffffffeb;
+            border-radius: 7px;
+            border: 1px solid rgba(0,0,0,0.15);
+            box-shadow: 0 1px 1px rgba(50,50,50,0.1);
+            cursor: pointer;
+            outline: none;
+            font-weight: 300;
+            font-family: Helvetica, sans-serif;
+            color: #37434b;
         }
 
         .react-autosuggest__suggestion {
@@ -66,14 +80,26 @@
         .react-autosuggest__container {
             display: inline;
         }
+          
+        .react-autosuggest__suggestion-match {
+            color: red;
+            font-weight: bold;
+        }
+
+        // .react-autosuggest__suggestion-loading > * {
+        //     opacity: 0 !important;
+        // }
+        
+        // .react-autosuggest__suggestion-loading {
+        //     background-color: rgba(211, 211, 211, 0.2);
+        //     background-image: url(./loading.gif);
+        //     background-repeat: no-repeat;
+        //     background-position: center center;
+        // }
     }
 
-    .glyphicon-refresh-animate {
-        -animation: spin .7s infinite linear;
-    }
-     
-    .glyphicon-refresh-animate {
-        -animation: spin .7s infinite linear;
+    .alert-danger {
+        padding: 10px;
     }
 
 @import "tag-theme";
