@@ -9,7 +9,6 @@ import * as classNames from "classnames";
 describe("TagInput", () => {
     // let tagStyle: BootstrapStyle;
     const currentTags = [ "Uganda" ];
-    const changedTags = [ "Uganda", "Kenya", "Netherland" ];
     const renderTag = (props: TagProps) => shallow(createElement(Tag, props));
     let tagInput: ShallowWrapper<TagProps, any>;
     const defaultProps: TagProps = {
@@ -22,7 +21,9 @@ describe("TagInput", () => {
         tagLimit: 5,
         tagLimitMessage: "",
         tagList: [ "Uganda" ],
-        newTag: ""
+        tagStyle: undefined,
+        newTag: "",
+        suggestions: [ "Suggestion1", "Suggestion2" ]
     };
 
     const inputProps = {
@@ -37,7 +38,7 @@ describe("TagInput", () => {
             createElement("div", {
                 className: classNames(
                     "widget-tag",
-                    `widget-tag-primary`,
+                    `widget-tag-${defaultProps.tagStyle}`,
                     defaultProps.className
                 ),
                 style: defaultProps.style
@@ -69,7 +70,8 @@ describe("TagInput", () => {
             tagLimit: 5,
             tagLimitMessage: "",
             tagList: [ "Uganda", "Kenya", "Netherland" ],
-            newTag: ""
+            newTag: "",
+            suggestions: [ "Suggestion1", "Suggestion2" ]
         };
         tagInput = renderTag(newProps);
         const newTagState = [ "Uganda", "Kenya" ];
@@ -78,7 +80,7 @@ describe("TagInput", () => {
         expect(tagInput.state().tagList.length).toBe(2);
     });
 
-    it("updates tags when they have been added", () => {
+    it("updates tags when one has been added", () => {
         const newProps: TagProps = {
             inputPlaceholder:  "",
             showError: jasmine.any(Function) as any,
@@ -86,16 +88,17 @@ describe("TagInput", () => {
             tagLimit: 5,
             tagLimitMessage: "",
             tagList: [ "Uganda" ],
-            newTag: "Kenya"
+            newTag: "SampleTag",
+            suggestions: [ "Suggestion1", "Suggestion2" ]
         };
-        tagInput = renderTag(newProps);
+        tagInput = renderTag(defaultProps);
 
         const tagInstance = tagInput.instance() as any;
         tagInstance.handleChangeInput(newProps.newTag);
-        tagInstance.handleChange(changedTags, currentTags);
-        tagInstance.addTag("Netherland");
+        tagInstance.addTag("SampleTag");
+        tagInstance.componentWillReceiveProps(newProps);
 
-        expect(tagInput.state().tagList.length).toBe(3);
+        expect(tagInput.state().tagList.length).toBe(2);
     });
 
     it("renders no tags when they are not specified", () => {
@@ -106,33 +109,15 @@ describe("TagInput", () => {
             tagLimit: 5,
             tagLimitMessage: "",
             tagList: [ ],
-            newTag: ""
+            newTag: "",
+            suggestions: [ "Suggestion1", "Suggestion2" ]
         };
         tagInput = renderTag(newProps);
 
         const tagInstance = tagInput.instance() as any;
+        tagInstance.componentDidMount();
         tagInstance.autosuggest();
 
         expect(tagInput.state().tagList).toEqual([]);
-    });
-
-    it("adds no tags when tag limit is reached", () => {
-        const value = "Netherland";
-        const newProps: TagProps = {
-            inputPlaceholder:  "",
-            showError: () => undefined,
-            createTag: jasmine.any(Function) as any,
-            lazyLoad: false,
-            tagLimit: 2,
-            tagLimitMessage: "",
-            tagList: [ "Uganda", "Kenya" ],
-            newTag: ""
-        };
-        tagInput = renderTag(newProps);
-
-        const tagInstance = tagInput.instance() as any;
-        tagInstance.handleChangeInput(value);
-
-        expect(tagInput.state().tagList.length).toBe(2);
     });
 });

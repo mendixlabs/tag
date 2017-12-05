@@ -1,7 +1,6 @@
 import { Component, createElement } from "react";
 
 import * as Autosuggest from "react-autosuggest";
-// import { changeNode } from "../utils/Utilities";
 
 export interface Suggestion {
     highlightedSuggestion?: string;
@@ -102,7 +101,6 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
                 node.addEventListener("focus", this.hundleFocus);
                 node.addEventListener("click", this.hundleClick);
             } else {
-                // node.classList.add("form-control");
                 node.addEventListener("keypress", this.hundleEnter);
                 node.addEventListener("focus", this.hundleFocus);
             }
@@ -131,8 +129,7 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         return suggestion.name;
     }
 
-    private renderSuggestion(suggestion: Suggestion, properties: SuggestionProperties) {
-        properties.isHighlighted = true;
+    private renderSuggestion(suggestion: Suggestion) {
 
         return createElement("span", {
             className: ""
@@ -153,8 +150,7 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         this.setState({ suggestions: this.props.suggestions });
     }
 
-    private hundleOnChange(event: Event, inputObject: Suggestion) {
-        event.preventDefault();
+    private hundleOnChange(_event: Event, inputObject: Suggestion) {
         if (inputObject.method === "type" && this.props.lazyLoad) {
             setTimeout(() => {
                 this.fetchSuggestions(this.props);

@@ -31,11 +31,6 @@
                 <enumerationValue key="never">Never</enumerationValue>
             </enumerationValues>
         </property>
-        <property key="enableDuplicates" type="boolean" defaultValue="false">
-            <caption>Enable duplicate</caption>
-            <category>General</category>
-            <description>Enable tag input duplication</description>
-        </property>
         <property key="enableSuggestions" type="boolean" defaultValue="false">
             <caption>Enable suggestions</caption>
             <category>General</category>

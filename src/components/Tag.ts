@@ -16,7 +16,6 @@ export interface TagProps {
     className?: string;
     createTag?: (tag: string) => void;
     enableSuggestions?: boolean;
-    enableDuplicates?: boolean; // TODO Implement me
     fetchSuggestions?: () => void;
     onRemove?: (tag: string) => void;
     inputPlaceholder: string;
@@ -56,7 +55,7 @@ export class Tag extends Component<TagProps, TagState> {
     render() {
         const inputProps = {
             className: "react-tagsinput-input",
-            placeholder: !this.props.readOnly ? this.props.inputPlaceholder : " "
+            placeholder: this.props.readOnly ? " " : this.props.inputPlaceholder
         };
         return createElement("div",
             {
@@ -124,7 +123,7 @@ export class Tag extends Component<TagProps, TagState> {
             this.setState({ newTag });
         } else if (this.state.tagList.length >= tagLimit) {
             showError(tagLimitMessage.replace("{limit}", `${tagLimit}`));
-            this.setState({ newTag: "" });
+            this.setState({ newTag });
         } else {
             this.setState({ newTag });
         }
@@ -147,7 +146,7 @@ export class Tag extends Component<TagProps, TagState> {
 
         if (tagLimit === 0 || tagLimit + 1 > this.state.tagList.length) {
             // Validate tag if its not a duplicate.
-            if (validateTagInput(tag, this.state.tagList) && !this.props.enableDuplicates) {
+            if (validateTagInput(tag, this.state.tagList)) {
                 this.setState ({
                     alertMessage: `Duplicate ${tag}`,
                     newTag: tag
@@ -185,5 +184,6 @@ export class Tag extends Component<TagProps, TagState> {
         const tagContainer = tagSpan.parentElement as HTMLElement;
 
         tagContainer.classList.add("form-control");
+        tagContainer.classList.remove("react-tagsinput--focused");
     }
 }

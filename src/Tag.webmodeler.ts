@@ -10,9 +10,10 @@ declare function require(name: string): string;
 // tslint:disable-next-line class-name
 export class preview extends Component<TagContainerProps, {}> {
     render() {
-        return createElement(ValidateConfigs, { ...this.props as TagContainerProps, showOnError: true },
-            createElement(Tag, this.transformProps())
-        );
+        return createElement(ValidateConfigs, {
+            ...this.props as TagContainerProps,
+            showOnError: true
+        }, createElement(Tag, this.transformProps()));
     }
 
     private transformProps(): TagProps {
@@ -23,7 +24,8 @@ export class preview extends Component<TagContainerProps, {}> {
             tagLimit: 2,
             tagLimitMessage: "",
             tagList: [ "Example1", "Example2" ],
-            newTag: ""
+            newTag: "",
+            suggestions: [ "Suggestion1", "Suggestion2" ]
         };
     }
 }

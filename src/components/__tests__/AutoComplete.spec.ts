@@ -75,7 +75,7 @@ describe("AutoComplete", () => {
         autoCompleteInstance.getSuggestions(newProps.suggestions[0]);
         autoCompleteInstance.componentDidMount();
         autoCompleteInstance.componentWillReceiveProps(newProps);
-        autoCompleteInstance.onChange(jasmine.any(Event), newProps.suggestions[0]);
+        autoCompleteInstance.hundleOnChange(jasmine.any(Event), newProps.suggestions[0]);
 
         expect(autoComplete.state().suggestions.length).toEqual(1);
     });
