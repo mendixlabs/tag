@@ -11,11 +11,6 @@ export interface Suggestion {
     value: string;
 }
 
-export interface SuggestionProperties {
-    query: string;
-    isHighlighted: boolean;
-}
-
 export interface AutoCompleteProps {
     addTag: (tag: string) => void;
     inputPlaceholder: string;
@@ -63,6 +58,7 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
             onBlur: this.hundleOnblur,
             onChange: this.hundleOnChange,
             placeholder: this.props.inputPlaceholder,
+            removeKeys: [ 8 ],
             type: "search",
             value
         };
@@ -82,8 +78,8 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         const suggestionInput = document.querySelectorAll(".react-autosuggest__input");
         const tagContainer = document.querySelectorAll(".react-tagsinput");
 
-        this.addEvents(suggestionInput, "");
-        this.addEvents(tagContainer, "tagContainer");
+        this.addEventListener(suggestionInput, "");
+        this.addEventListener(tagContainer, "tagContainer");
     }
 
     componentWillReceiveProps(newProps: AutoCompleteProps) {
@@ -93,7 +89,15 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         });
     }
 
-    private addEvents(nodes: NodeListOf<Element>, element: string) {
+    componentWillUnmount() {
+        const suggestionInput = document.querySelectorAll(".react-autosuggest__input");
+        const tagContainer = document.querySelectorAll(".react-tagsinput");
+
+        this.removeEventsListeners(suggestionInput, "");
+        this.removeEventsListeners(tagContainer, "tagContainer");
+    }
+
+    private addEventListener(nodes: NodeListOf<Element>, element: string) {
         for (let i = 0; nodes[i]; i++) {
             const node = nodes[i] as HTMLElement;
 
@@ -101,8 +105,22 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
                 node.addEventListener("focus", this.hundleFocus);
                 node.addEventListener("click", this.hundleClick);
             } else {
-                node.addEventListener("keypress", this.hundleEnter);
+                node.addEventListener("keydown", this.hundleEnter);
                 node.addEventListener("focus", this.hundleFocus);
+            }
+        }
+    }
+
+    private removeEventsListeners(nodes: NodeListOf<Element>, element: string) {
+        for (let i = 0; nodes[i]; i++) {
+            const node = nodes[i] as HTMLElement;
+
+            if (element === "tagContainer") {
+                node.removeEventListener("focus");
+                node.removeEventListener("click");
+            } else {
+                node.removeEventListener("keydown");
+                node.removeEventListener("focus");
             }
         }
     }
