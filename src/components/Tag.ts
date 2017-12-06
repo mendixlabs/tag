@@ -86,17 +86,17 @@ export class Tag extends Component<TagProps, TagState> {
         );
     }
 
+    componentDidMount() {
+        const tagNodelist = document.querySelectorAll(".react-tagsinput-input");
+
+        this.addEvents(tagNodelist);
+    }
+
     componentWillReceiveProps(newProps: TagProps) {
         this.setState({
             alertMessage: newProps.alertMessage,
             tagList: newProps.tagList
         });
-    }
-
-    componentDidMount() {
-        const tagNodelist = document.querySelectorAll(".react-tagsinput-input");
-
-        this.addEvents(tagNodelist);
     }
 
     componentWillUnmount() {
