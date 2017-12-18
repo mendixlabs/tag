@@ -53,15 +53,3 @@ export const hideLoader = (node?: HTMLElement) => {
         node.classList.remove("react-autosuggest__suggestion-loading");
     }
 };
-
-export const validateTagInput = (newTag: string, availableTags: string[]): boolean => {
-    let valid = false;
-    for (const tagValue of availableTags) {
-        if (tagValue.localeCompare(newTag) === 0) {
-            valid = true;
-            break;
-        }
-    }
-
-    return valid;
-};

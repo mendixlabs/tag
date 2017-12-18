@@ -3,7 +3,7 @@ import { Component, createElement } from "react";
 import * as TagsInput from "react-tagsinput";
 import { AutoComplete } from "./AutoComplete";
 import { Alert } from "./Alert";
-import { processSuggestions, validateTagInput } from "../utils/Utilities";
+import { processSuggestions } from "../utils/Utilities";
 
 import * as classNames from "classnames";
 
@@ -47,7 +47,7 @@ export class Tag extends Component<TagProps, TagState> {
             newTag: this.props.newTag,
             tagList: props.tagList
         };
-        this.autosuggest = this.autosuggest.bind(this);
+        this.renderAutosuggest = this.renderAutosuggest.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleChangeInput = this.handleChangeInput.bind(this);
     }
@@ -59,11 +59,7 @@ export class Tag extends Component<TagProps, TagState> {
         };
         return createElement("div",
             {
-                className: classNames(
-                    "widget-tag",
-                    `widget-tag-${this.props.tagStyle}`,
-                    this.props.className
-                ),
+                className: classNames("widget-tag", `widget-tag-${this.props.tagStyle}`, this.props.className),
                 style: this.props.style
             },
             createElement(TagsInput, {
@@ -75,7 +71,7 @@ export class Tag extends Component<TagProps, TagState> {
                 onChangeInput: this.handleChangeInput,
                 maxTags: this.props.tagLimit === 0 ? undefined : this.props.tagLimit,
                 onChange: this.handleChange,
-                renderInput: this.props.enableSuggestions ? this.autosuggest : undefined,
+                renderInput: this.props.enableSuggestions ? this.renderAutosuggest : undefined,
                 value: this.state.tagList
             }),
             createElement(Alert, {
@@ -129,10 +125,9 @@ export class Tag extends Component<TagProps, TagState> {
         }
     }
 
-    private autosuggest() {
-
+    private renderAutosuggest() {
         return createElement(AutoComplete, {
-            addTag: (tag: string) => this.addTag(tag),
+            addTag: (tag: string) => this.processTag(tag),
             fetchSuggestions: this.props.fetchSuggestions,
             inputPlaceholder: this.props.inputPlaceholder,
             lazyLoad: this.props.lazyLoad,
@@ -140,13 +135,13 @@ export class Tag extends Component<TagProps, TagState> {
         });
     }
 
-    private addTag(tag: string) {
+    private processTag(tag: string) {
         const { tagLimit, tagLimitMessage, createTag } = this.props;
         const tagList = this.state.tagList;
 
         if (tagLimit === 0 || tagLimit + 1 > this.state.tagList.length) {
             // Validate tag if its not a duplicate.
-            if (validateTagInput(tag, this.state.tagList)) {
+            if (this.validateTagInput(tag, this.state.tagList)) {
                 this.setState ({
                     alertMessage: `Duplicate ${tag}`,
                     newTag: tag
@@ -161,12 +156,24 @@ export class Tag extends Component<TagProps, TagState> {
         }
     }
 
+    private validateTagInput = (newTag: string, availableTags: string[]): boolean => {
+        let valid = false;
+        for (const tagValue of availableTags) {
+            if (tagValue.localeCompare(newTag) === 0) {
+                valid = true;
+                break;
+            }
+        }
+
+        return valid;
+    }
+
     private handleChange(tagList: string[], changed: string[]) {
         if (this.props.onRemove && this.state.tagList.length > tagList.length) {
             this.props.onRemove(changed[0]);
             this.setState({ tagList });
         } else {
-            this.addTag(changed[0]);
+            this.processTag(changed[0]);
         }
     }
 

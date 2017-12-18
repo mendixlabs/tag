@@ -1,9 +1,10 @@
 import HomePage from "./pages/home.page";
 import SuggestionsPage from "./pages/suggestions.page";
 
-const suggestionValue = (Math.random() + 1).toString(36).substring(7);
-const testValue = "Kenya";
-const removeValue = "TestCaseRemove";
+const suggestionValue = "newSuggestion";
+const testItem = "new";
+const testValue = "testValue";
+const removeValue = "foo";
 
 describe("TagInput", () => {
 
@@ -20,16 +21,14 @@ describe("TagInput", () => {
     });
 
     it("should show suggestions when need", () => {
-        SuggestionsPage.openCreate();
-        HomePage.textInput.waitForVisible();
-        HomePage.textInput.click();
-        HomePage.textInput.setValue(suggestionValue);
-        browser.keys("Enter");
-
         SuggestionsPage.openSuggestion();
         SuggestionsPage.TestInput.waitForVisible();
         SuggestionsPage.TestInput.click();
         SuggestionsPage.TestInput.setValue(suggestionValue);
+        browser.keys("Enter");
+
+        SuggestionsPage.TestInput.click();
+        SuggestionsPage.TestInput.setValue(testItem);
 
         SuggestionsPage.suggestionList.waitForVisible();
 
@@ -45,6 +44,7 @@ describe("TagInput", () => {
         browser.keys("Enter");
         HomePage.textInput.click();
 
+        HomePage.textInput.click();
         browser.keys("Backspace");
         HomePage.tagsContainer.waitForVisible();
 

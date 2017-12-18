@@ -1,4 +1,4 @@
-import { ShallowWrapper, shallow } from "enzyme";
+import { ShallowWrapper, mount, shallow } from "enzyme";
 import { createElement } from "react";
 import * as TagsInput from "react-tagsinput";
 
@@ -6,22 +6,23 @@ import { Tag, TagProps } from "../Tag";
 import { Alert } from "../Alert";
 import * as classNames from "classnames";
 
-describe("TagInput", () => {
-    // let tagStyle: BootstrapStyle;
-    const currentTags = [ "Uganda" ];
-    const renderTag = (props: TagProps) => shallow(createElement(Tag, props));
+describe("TagsInput", () => {
+    const currentTags = [ "example1" ];
+    const shallowRenderTag = (props: TagProps) => shallow(createElement(Tag, props));
+    const fullRenderTag = (props: TagProps) => mount(createElement(Tag, props));
+
     let tagInput: ShallowWrapper<TagProps, any>;
     const defaultProps: TagProps = {
         className: "",
-        enableSuggestions: true,
+        enableSuggestions: false,
         inputPlaceholder:  "",
         showError: jasmine.any(Function) as any,
         lazyLoad: false,
         style: undefined,
         tagLimit: 5,
         tagLimitMessage: "",
-        tagList: [ "Uganda" ],
-        tagStyle: undefined,
+        tagList: currentTags,
+        tagStyle: "primary",
         newTag: "",
         suggestions: [ "Suggestion1", "Suggestion2" ]
     };
@@ -32,7 +33,7 @@ describe("TagInput", () => {
     };
 
     it("renders TagInput structure correctly", () => {
-        const tag = renderTag(defaultProps);
+        const tag = shallowRenderTag(defaultProps);
 
         expect(tag).toBeElement(
             createElement("div", {
@@ -42,8 +43,7 @@ describe("TagInput", () => {
                     defaultProps.className
                 ),
                 style: defaultProps.style
-            },
-                createElement(TagsInput, {
+            }, createElement(TagsInput, {
                     addOnBlur: true,
                     addOnPaste: true,
                     disabled: false,
@@ -57,67 +57,63 @@ describe("TagInput", () => {
                 }),
                 createElement(Alert, {
                     bootstrapStyle: "danger",
-                    className: "widget-tag-alert"
+                    className: "widget-tag-alert",
+                    message: ""
                 })
             ));
     });
 
-    it("updates tags when they are removed", () => {
+    it("should allow tag input via the tag text input", () => {
+        const newValue = "foo";
         const newProps: TagProps = {
-            inputPlaceholder:  "",
-            showError: jasmine.any(Function) as any,
-            lazyLoad: false,
-            tagLimit: 5,
-            tagLimitMessage: "",
-            tagList: [ "Uganda", "Kenya", "Netherland" ],
-            newTag: "",
-            suggestions: [ "Suggestion1", "Suggestion2" ]
+            ...defaultProps,
+            tagList: []
         };
-        tagInput = renderTag(newProps);
-        const newTagState = [ "Uganda", "Kenya" ];
-        tagInput.setState({ tagList: newTagState });
-
-        expect(tagInput.state().tagList.length).toBe(2);
-    });
-
-    it("updates tags when one has been added", () => {
-        const newProps: TagProps = {
-            inputPlaceholder:  "",
-            showError: jasmine.any(Function) as any,
-            lazyLoad: false,
-            tagLimit: 5,
-            tagLimitMessage: "",
-            tagList: [ "Uganda" ],
-            newTag: "SampleTag",
-            suggestions: [ "Suggestion1", "Suggestion2" ]
-        };
-        tagInput = renderTag(defaultProps);
-
+        tagInput = shallowRenderTag(newProps);
         const tagInstance = tagInput.instance() as any;
-        tagInstance.handleChangeInput(newProps.newTag);
-        tagInstance.addTag("SampleTag");
-        tagInstance.componentWillReceiveProps(newProps);
+        const addEventSpy = spyOn(tagInstance, "addEvents").and.callThrough();
+        const tagNodelist = document.querySelectorAll(".react-tagsinput-input");
 
-        expect(tagInput.state().tagList.length).toBe(2);
-    });
-
-    it("renders no tags when they are not specified", () => {
-        const newProps: TagProps = {
-            inputPlaceholder:  "",
-            showError: jasmine.any(Function) as any,
-            lazyLoad: false,
-            tagLimit: 5,
-            tagLimitMessage: "",
-            tagList: [ ],
-            newTag: "",
-            suggestions: [ "Suggestion1", "Suggestion2" ]
-        };
-        tagInput = renderTag(newProps);
-
-        const tagInstance = tagInput.instance() as any;
         tagInstance.componentDidMount();
-        tagInstance.autosuggest();
+        tagInstance.handleChangeInput(newValue);
+        tagInstance.componentWillUnmount();
 
-        expect(tagInput.state().tagList).toEqual([]);
+        expect(tagInput.state().newTag).toEqual(newValue);
+        expect(addEventSpy).toHaveBeenCalledWith(tagNodelist);
+    });
+
+    it("should render autoSuggest component if suggestions are enabled", () => {
+        const newProps: TagProps = {
+            ...defaultProps,
+            tagList: [ "baa" ],
+            tagLimit: 0,
+            newTag: "foo"
+        };
+        const tag = fullRenderTag(newProps);
+        const tagInstance = tag.instance() as any;
+        const renderSuggestionSpy = spyOn(tagInstance, "renderAutosuggest").and.callThrough();
+
+        tag.setProps({ enableSuggestions: true });
+        tagInstance.componentDidMount();
+
+        expect(renderSuggestionSpy).toHaveBeenCalled();
+    });
+
+    it("should process a tag before it is added", () => {
+        const newProps: TagProps = {
+            ...defaultProps,
+            onRemove: () => jasmine.any(Function) as any
+        };
+
+        const tag = fullRenderTag(newProps);
+        const tagInstance = tag.instance() as any;
+        const changeSpy = spyOn(tagInstance, "handleChange").and.callThrough();
+        const processTagSpy = spyOn(tagInstance, "processTag").and.callThrough();
+
+        tag.find("input").simulate("change", { target: { value: "foo" } });
+        tag.find("input").simulate("blur");
+
+        expect(changeSpy).toHaveBeenCalledTimes(1);
+        expect(processTagSpy).toHaveBeenCalledTimes(1);
     });
 });

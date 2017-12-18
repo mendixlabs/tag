@@ -58,7 +58,6 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
             onBlur: this.hundleOnblur,
             onChange: this.hundleOnChange,
             placeholder: this.props.inputPlaceholder,
-            removeKeys: [ 8 ],
             type: "search",
             value
         };
