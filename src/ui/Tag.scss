@@ -54,10 +54,10 @@
             z-index: 1;
             list-style-type: none;
             position: absolute;
-            width: auto;
+            width: 100%;
             margin: 0 auto;
             padding: 1px;
-            background: #ffffffeb;
+            background: #ffffffe6;
             border-radius: 7px;
             border: 1px solid rgba(0,0,0,0.15);
             box-shadow: 0 1px 1px rgba(50,50,50,0.1);
@@ -66,6 +66,8 @@
             font-weight: 300;
             font-family: Helvetica, sans-serif;
             color: #37434b;
+            overflow:hidden;
+            overflow-y:scroll;
         }
 
         .react-autosuggest__suggestion {
