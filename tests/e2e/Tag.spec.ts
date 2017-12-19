@@ -1,8 +1,6 @@
 import HomePage from "./pages/home.page";
 import SuggestionsPage from "./pages/suggestions.page";
 
-const suggestionValue = "newSuggestion";
-const testItem = "new";
 const testValue = "testValue";
 const removeValue = "foo";
 
@@ -24,15 +22,10 @@ describe("TagInput", () => {
         SuggestionsPage.openSuggestion();
         SuggestionsPage.TestInput.waitForVisible();
         SuggestionsPage.TestInput.click();
-        SuggestionsPage.TestInput.setValue(suggestionValue);
-        browser.keys("Enter");
-
-        SuggestionsPage.TestInput.click();
-        SuggestionsPage.TestInput.setValue(testItem);
-
+        SuggestionsPage.TestInput.setValue("te");
         SuggestionsPage.suggestionList.waitForVisible();
 
-        expect(SuggestionsPage.suggestionList.getText()).toContain(suggestionValue);
+        expect(SuggestionsPage.suggestionList.getText()).toContain(testValue);
     });
 
     it("should remove a tag if exists", () => {
