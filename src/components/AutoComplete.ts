@@ -3,7 +3,6 @@ import { Component, createElement } from "react";
 import * as Autosuggest from "react-autosuggest";
 
 export interface Suggestion {
-    highlightedSuggestion?: string;
     method: string;
     name: string;
     newValue: string;
@@ -16,7 +15,7 @@ export interface AutoCompleteProps {
     inputPlaceholder: string;
     lazyLoad?: boolean;
     fetchSuggestions?: () => void;
-    suggestionValue?: string;
+    readOnly?: boolean;
     suggestions: Suggestion[];
 }
 
@@ -57,7 +56,7 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         const inputProps = {
             onBlur: this.hundleOnblur,
             onChange: this.hundleOnChange,
-            placeholder: this.props.inputPlaceholder,
+            placeholder: this.props.readOnly ? " " : this.props.inputPlaceholder,
             type: "search",
             value
         };

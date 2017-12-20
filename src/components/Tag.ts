@@ -21,7 +21,7 @@ export interface TagProps {
     inputPlaceholder: string;
     lazyLoad?: boolean;
     newTag: string;
-    readOnly?: boolean;
+    readOnly: boolean;
     showError: (message: string) => void;
     style?: object;
     suggestions: string[];
@@ -65,6 +65,7 @@ export class Tag extends Component<TagProps, TagState> {
             createElement(TagsInput, {
                 addOnBlur: true,
                 addOnPaste: true,
+                className: this.props.readOnly ? "tag-wrapper-readOnly" : "tag-wrapper",
                 disabled: this.props.readOnly,
                 inputProps,
                 inputValue: this.state.newTag,
@@ -83,9 +84,8 @@ export class Tag extends Component<TagProps, TagState> {
     }
 
     componentDidMount() {
-        const tagNodelist = document.querySelectorAll(".react-tagsinput-input");
-
-        this.addEvents(tagNodelist);
+        const tagInputSelector = document.querySelectorAll(".react-tagsinput-input");
+        this.addEvents(tagInputSelector);
     }
 
     componentWillReceiveProps(newProps: TagProps) {
@@ -130,6 +130,7 @@ export class Tag extends Component<TagProps, TagState> {
             addTag: (tag: string) => this.processTag(tag),
             fetchSuggestions: this.props.fetchSuggestions,
             inputPlaceholder: this.props.inputPlaceholder,
+            readOnly: this.props.readOnly,
             lazyLoad: this.props.lazyLoad,
             suggestions: processSuggestions(this.props.suggestions)
         });

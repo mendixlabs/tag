@@ -102,7 +102,7 @@ export default class TagContainer extends Component<TagContainerProps, TagState>
     private isReadOnly() {
         const { editable, mxObject, readOnly } = this.props;
         if (editable === "default" && mxObject) {
-            return readOnly; // || mxObject.isReadonlyAttr(booleanAttribute); // returns true always
+            return readOnly;
         }
 
         return true;

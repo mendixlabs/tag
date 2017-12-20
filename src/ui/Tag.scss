@@ -2,11 +2,18 @@
     .widget-tag {
         position: relative;
 
-        .react-tagsinput {
+        .tag-wrapper {
             border: 1px solid #D7D7D7;
             border-radius: 4px;
             padding: 0px 5px;
             cursor: text;
+            display: block;
+        }
+
+        .tag-wrapper-readOnly {
+            border: none;
+            border-radius: 4px;
+            padding: 0px 5px;
             display: block;
         }
 

@@ -18,6 +18,7 @@ describe("TagsInput", () => {
         inputPlaceholder:  "",
         showError: jasmine.any(Function) as any,
         lazyLoad: false,
+        readOnly: false,
         style: undefined,
         tagLimit: 5,
         tagLimitMessage: "",
@@ -46,6 +47,7 @@ describe("TagsInput", () => {
             }, createElement(TagsInput, {
                     addOnBlur: true,
                     addOnPaste: true,
+                    className: "tag-wrapper",
                     disabled: false,
                     inputProps,
                     inputValue: "",

@@ -20,6 +20,7 @@ export class preview extends Component<TagContainerProps, {}> {
 
         return {
             inputPlaceholder: "Add a tag",
+            readOnly: false,
             showError: () => undefined,
             tagLimit: 2,
             tagLimitMessage: "",
