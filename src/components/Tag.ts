@@ -65,7 +65,7 @@ export class Tag extends Component<TagProps, TagState> {
             createElement(TagsInput, {
                 addOnBlur: true,
                 addOnPaste: true,
-                className: this.props.readOnly ? "tag-wrapper-readOnly" : "tag-wrapper",
+                className: this.props.readOnly ? "tag-container-readOnly" : "tag-container",
                 disabled: this.props.readOnly,
                 inputProps,
                 inputValue: this.state.newTag,
@@ -96,10 +96,11 @@ export class Tag extends Component<TagProps, TagState> {
     }
 
     componentWillUnmount() {
-        const nodeList = document.querySelectorAll(".react-tagsinput");
+        const inputNodeList = document.querySelectorAll(".react-tagsinput-input");
 
-        for (let i = 0; nodeList[i]; i++) {
-            nodeList[i].removeEventListener("focus");
+        for (let i = 0; inputNodeList[i]; i++) {
+            inputNodeList[i].removeEventListener("focus");
+            inputNodeList[i].removeEventListener("blur");
         }
     }
 
@@ -153,7 +154,9 @@ export class Tag extends Component<TagProps, TagState> {
                 createTag(tag);
             }
         } else {
-            this.props.showError(tagLimitMessage.replace("{limit}", `${tagLimit}`));
+            this.setState ({
+                alertMessage: tagLimitMessage.replace("{limit}", `${tagLimit}`)
+            });
         }
     }
 

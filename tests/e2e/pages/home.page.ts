@@ -1,6 +1,6 @@
 class HomePage {
     public get textInput() { return browser.element(".react-tagsinput-input"); }
-    public get tagsContainer() { return browser.element(".react-tagsinput"); }
+    public get tagsContainer() { return browser.element(".tag-container"); }
 
     public open(): void {
         browser.url("/");

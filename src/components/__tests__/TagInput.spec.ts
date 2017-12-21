@@ -47,7 +47,7 @@ describe("TagsInput", () => {
             }, createElement(TagsInput, {
                     addOnBlur: true,
                     addOnPaste: true,
-                    className: "tag-wrapper",
+                    className: "tag-container",
                     disabled: false,
                     inputProps,
                     inputValue: "",

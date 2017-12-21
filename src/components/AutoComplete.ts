@@ -74,10 +74,7 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
 
     componentDidMount() {
         const suggestionInput = document.querySelectorAll(".react-autosuggest__input");
-        const tagContainer = document.querySelectorAll(".react-tagsinput");
-
-        this.addEventListener(suggestionInput, "");
-        this.addEventListener(tagContainer, "tagContainer");
+        this.addEventListener(suggestionInput);
     }
 
     componentWillReceiveProps(newProps: AutoCompleteProps) {
@@ -89,37 +86,38 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
 
     componentWillUnmount() {
         const suggestionInput = document.querySelectorAll(".react-autosuggest__input");
-        const tagContainer = document.querySelectorAll(".react-tagsinput");
-
-        this.removeEventsListeners(suggestionInput, "");
-        this.removeEventsListeners(tagContainer, "tagContainer");
+        this.removeEventsListeners(suggestionInput);
     }
 
-    private addEventListener(nodes: NodeListOf<Element>, element: string) {
+    private addEventListener(nodes: NodeListOf<Element>) {
         for (let i = 0; nodes[i]; i++) {
             const node = nodes[i] as HTMLElement;
 
-            if (element === "tagContainer") {
-                node.addEventListener("focus", this.hundleFocus);
-                node.addEventListener("click", this.hundleClick);
-            } else {
-                node.addEventListener("keydown", this.hundleEnter);
-                node.addEventListener("focus", this.hundleFocus);
-            }
+            const suggestionContainer = node.parentNode as HTMLElement;
+            const suggestionSpan = suggestionContainer.parentNode as HTMLElement;
+            const tagContainer = suggestionSpan.parentNode as HTMLElement;
+
+            tagContainer.addEventListener("focus", this.hundleContainerFocus, false);
+            tagContainer.addEventListener("click", this.hundleClick, false);
+
+            node.addEventListener("keydown", this.hundleEnter, false);
+            node.addEventListener("focus", this.hundleFocus, false);
         }
     }
 
-    private removeEventsListeners(nodes: NodeListOf<Element>, element: string) {
+    private removeEventsListeners(nodes: NodeListOf<Element>) {
         for (let i = 0; nodes[i]; i++) {
             const node = nodes[i] as HTMLElement;
 
-            if (element === "tagContainer") {
-                node.removeEventListener("focus");
-                node.removeEventListener("click");
-            } else {
-                node.removeEventListener("keydown");
-                node.removeEventListener("focus");
-            }
+            const suggestionContainer = node.parentNode as HTMLElement;
+            const suggestionSpan = suggestionContainer.parentNode as HTMLElement;
+            const tagContainer = suggestionSpan.parentNode as HTMLElement;
+
+            tagContainer.removeEventListener("focus");
+            tagContainer.removeEventListener("click");
+
+            node.removeEventListener("keydown");
+            node.removeEventListener("focus");
         }
     }
 
@@ -184,10 +182,10 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
 
     private hundleClick(event: Event) {
         const tagContainer = event.target as HTMLElement;
-        const suggestionInput = tagContainer.querySelector(".react-autosuggest__input") as HTMLElement;
+        const suggestionInput = tagContainer.getElementsByTagName("input");
 
-        if (suggestionInput !== null) {
-            suggestionInput.focus();
+        if (suggestionInput[0] !== null) {
+            suggestionInput[0].focus();
         }
     }
 
@@ -199,6 +197,13 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
 
         tagContainer.classList.add("react-tagsinput--focused");
         tagContainer.classList.add("form-control");
+    }
+
+    private hundleContainerFocus(event: Event) {
+        const tagContainer = event.target as HTMLElement;
+        const suggestionInput = tagContainer.getElementsByTagName("input");
+
+        suggestionInput[0].focus();
     }
 
     private hundleOnblur(event: Event) {

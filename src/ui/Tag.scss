@@ -2,7 +2,7 @@
     .widget-tag {
         position: relative;
 
-        .tag-wrapper {
+        .tag-container {
             border: 1px solid #D7D7D7;
             border-radius: 4px;
             padding: 0px 5px;
@@ -10,9 +10,10 @@
             display: block;
         }
 
-        .tag-wrapper-readOnly {
+        .tag-container-readOnly {
             border: none;
             border-radius: 4px;
+            cursor: default;
             padding: 0px 5px;
             display: block;
         }
