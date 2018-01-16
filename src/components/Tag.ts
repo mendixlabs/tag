@@ -1,11 +1,12 @@
 import { Component, createElement } from "react";
+import * as ReactDOM from "react-dom";
+import * as classNames from "classnames";
 
+import { Alert } from "./Alert";
 import * as TagsInput from "react-tagsinput";
 import { AutoComplete } from "./AutoComplete";
-import { Alert } from "./Alert";
-import { processSuggestions } from "../utils/Utilities";
 
-import * as classNames from "classnames";
+import { processSuggestions } from "../utils/Utilities";
 
 import "react-tagsinput/react-tagsinput.css";
 import "../ui/Tag.scss";
@@ -22,7 +23,6 @@ export interface TagProps {
     lazyLoad?: boolean;
     newTag: string;
     readOnly: boolean;
-    showError: (message: string) => void;
     style?: object;
     suggestions: string[];
     tagLimit: number;
@@ -39,6 +39,7 @@ interface TagState {
 export type BootstrapStyle = "primary" | "inverse" | "success" | "info" | "warning" | "danger";
 
 export class Tag extends Component<TagProps, TagState> {
+
     constructor(props: TagProps) {
         super(props);
 
@@ -47,7 +48,8 @@ export class Tag extends Component<TagProps, TagState> {
             newTag: this.props.newTag,
             tagList: props.tagList
         };
-        this.renderAutosuggest = this.renderAutosuggest.bind(this);
+
+        this.renderAutoComplete = this.renderAutoComplete.bind(this);
         this.handleChange = this.handleChange.bind(this);
         this.handleChangeInput = this.handleChangeInput.bind(this);
     }
@@ -70,9 +72,8 @@ export class Tag extends Component<TagProps, TagState> {
                 inputProps,
                 inputValue: this.state.newTag,
                 onChangeInput: this.handleChangeInput,
-                maxTags: this.props.tagLimit === 0 ? undefined : this.props.tagLimit,
                 onChange: this.handleChange,
-                renderInput: this.props.enableSuggestions ? this.renderAutosuggest : undefined,
+                renderInput: this.props.enableSuggestions ? this.renderAutoComplete : undefined,
                 value: this.state.tagList
             }),
             createElement(Alert, {
@@ -84,85 +85,88 @@ export class Tag extends Component<TagProps, TagState> {
     }
 
     componentDidMount() {
-        const tagInputSelector = document.querySelectorAll(".react-tagsinput-input");
+        const node = ReactDOM.findDOMNode(this);
+        const tagInputSelector = node.querySelectorAll(".react-tagsinput-input");
+
         this.addEvents(tagInputSelector);
     }
 
     componentWillReceiveProps(newProps: TagProps) {
-        this.setState({
-            alertMessage: newProps.alertMessage,
-            tagList: newProps.tagList
-        });
+        if (newProps.tagLimit > 0 && newProps.tagList.length > newProps.tagLimit) {
+            this.setState({
+                alertMessage: newProps.tagLimitMessage.replace("{limit}", `${newProps.tagLimit}`),
+                tagList: newProps.tagList
+            });
+        } else {
+            this.setState({
+                alertMessage: newProps.alertMessage,
+                tagList: newProps.tagList
+            });
+        }
     }
 
     componentWillUnmount() {
-        const inputNodeList = document.querySelectorAll(".react-tagsinput-input");
+        const node = ReactDOM.findDOMNode(this);
+        const inputNodeList = node.querySelectorAll(".react-tagsinput-input");
 
         for (let i = 0; inputNodeList[i]; i++) {
-            inputNodeList[i].removeEventListener("focus");
-            inputNodeList[i].removeEventListener("blur");
+            inputNodeList[i].removeEventListener("focus", this.handleFocus, true);
+            inputNodeList[i].removeEventListener("blur", this.handleOnblur, true);
         }
     }
 
-    private addEvents(nodes: NodeListOf<Element>) {
-        for (let i = 0; nodes[i]; i++) {
-            const node = nodes[i] as HTMLElement;
-
-            node.addEventListener("focus", this.hundleFocus);
-            node.addEventListener("blur", this.hundleOnblur);
-        }
-    }
-
-    private handleChangeInput(newTag: string) {
-        const { tagLimit, tagLimitMessage, showError } = this.props;
-
-        if (tagLimit === 0) {
-            this.setState({ newTag });
-        } else if (this.state.tagList.length >= tagLimit) {
-            showError(tagLimitMessage.replace("{limit}", `${tagLimit}`));
-            this.setState({ newTag });
-        } else {
-            this.setState({ newTag });
-        }
-    }
-
-    private renderAutosuggest() {
+    private renderAutoComplete() {
         return createElement(AutoComplete, {
             addTag: (tag: string) => this.processTag(tag),
             fetchSuggestions: this.props.fetchSuggestions,
             inputPlaceholder: this.props.inputPlaceholder,
             readOnly: this.props.readOnly,
             lazyLoad: this.props.lazyLoad,
-            suggestions: processSuggestions(this.props.suggestions)
+            onRemove: this.props.onRemove,
+            suggestions: processSuggestions(this.props.suggestions, this.props.tagList),
+            tagList: this.state.tagList
         });
     }
 
-    private processTag(tag: string) {
-        const { tagLimit, tagLimitMessage, createTag } = this.props;
-        const tagList = this.state.tagList;
+    private handleChangeInput(newTag: string) {
+        this.setState({ newTag });
+    }
 
-        if (tagLimit === 0 || tagLimit + 1 > this.state.tagList.length) {
+    private handleChange(tagList: string[], changed: string[]) {
+        if (this.props.onRemove && this.state.tagList.length > tagList.length) {
+            this.props.onRemove(changed[0]);
+            this.setState({
+                alertMessage: "",
+                tagList
+            });
+        } else { this.processTag(changed[0]); }
+    }
+
+    private processTag(newTag: string) {
+        const { tagLimit, tagLimitMessage, createTag } = this.props;
+
+        if (tagLimit === 0 || this.state.tagList.length < tagLimit) {
             // Validate tag if its not a duplicate.
-            if (this.validateTagInput(tag, this.state.tagList)) {
+            if (this.validateTagInput(newTag, this.state.tagList)) {
                 this.setState ({
-                    alertMessage: `Duplicate ${tag}`,
-                    newTag: tag
+                    alertMessage: `Duplicate ${newTag}`,
+                    newTag
                 });
             } else if (createTag) {
-                tagList.push(tag);
-                this.setState({ tagList });
-                createTag(tag);
+                this.setState({
+                    alertMessage: ""
+                });
+                createTag(newTag);
             }
         } else {
-            this.setState ({
-                alertMessage: tagLimitMessage.replace("{limit}", `${tagLimit}`)
-            });
+            this.setState ({ alertMessage: tagLimitMessage.replace("{limit}", `${tagLimit}`) });
         }
     }
 
-    private validateTagInput = (newTag: string, availableTags: string[]): boolean => {
+    private validateTagInput = (newTag: string, existingTags: string[]): boolean => {
         let valid = false;
-        for (const tagValue of availableTags) {
+
+        for (const tagValue of existingTags) {
             if (tagValue.localeCompare(newTag) === 0) {
                 valid = true;
                 break;
@@ -172,16 +176,16 @@ export class Tag extends Component<TagProps, TagState> {
         return valid;
     }
 
-    private handleChange(tagList: string[], changed: string[]) {
-        if (this.props.onRemove && this.state.tagList.length > tagList.length) {
-            this.props.onRemove(changed[0]);
-            this.setState({ tagList });
-        } else {
-            this.processTag(changed[0]);
+    private addEvents(nodes: NodeListOf<Element>) {
+        for (let i = 0; nodes[i]; i++) {
+            const node = nodes[i] as HTMLElement;
+
+            node.addEventListener("focus", this.handleFocus, true);
+            node.addEventListener("blur", this.handleOnblur, true);
         }
     }
 
-    private hundleFocus(event: Event) {
+    private handleFocus(event: Event) {
         const tagInput = event.target as HTMLElement;
         const tagSpan = tagInput.parentElement as HTMLElement;
         const tagContainer = tagSpan.parentElement as HTMLElement;
@@ -189,7 +193,7 @@ export class Tag extends Component<TagProps, TagState> {
         tagContainer.classList.add("form-control");
     }
 
-    private hundleOnblur(event: Event) {
+    private handleOnblur(event: Event) {
         const tagInput = event.target as HTMLElement;
         const tagSpan = tagInput.parentElement as HTMLElement;
         const tagContainer = tagSpan.parentElement as HTMLElement;

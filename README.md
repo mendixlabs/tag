@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/mendixlabs/tag/branch/master/graph/badge.svg)](https://codecov.io/gh/mendixlabs/tag)
 
 # Tag
-Display and manipulate tags.
+Display, add, update and remove tags.
 
 ## Features
 * Create new tag object when non existent

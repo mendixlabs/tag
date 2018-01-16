@@ -13,27 +13,28 @@ export class preview extends Component<TagContainerProps, {}> {
         return createElement(ValidateConfigs, {
             ...this.props as TagContainerProps,
             showOnError: true
-        }, createElement(Tag, this.transformProps()));
+        }, createElement(Tag, preview.transformProps(this.props)));
     }
 
-    private transformProps(): TagProps {
+    private static transformProps(props: TagContainerProps): TagProps {
 
         return {
-            inputPlaceholder: "Add a tag",
-            readOnly: false,
-            showError: () => undefined,
-            tagLimit: 2,
-            tagLimitMessage: "",
-            tagList: [ "Example1", "Example2" ],
+            inputPlaceholder: props.inputPlaceholder,
+            readOnly: props.editable === "never",
+            tagLimit: props.tagLimit,
+            tagLimitMessage: props.tagLimitMessage,
+            tagList: [ "tag1", "tag2" ],
+            tagStyle: props.tagStyle,
             newTag: "",
-            suggestions: [ "Suggestion1", "Suggestion2" ]
+            style: {},
+            suggestions: [ ]
         };
     }
 }
 
 export function getPreviewCss() {
     return (
-        require("react-tagsinput/react-tagsinput.css") +
-        require("./ui/Tag.scss")
+        require("./ui/Tag.scss") +
+        require("react-tagsinput/react-tagsinput.css")
     );
 }

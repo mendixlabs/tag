@@ -2,7 +2,7 @@
   "name": "tag",
   "widgetName": "Tag",
   "version": "1.0.0",
-  "description": "Display and manipulate tag",
+  "description": "Display, add, update and remove tags",
   "scripts": {
     "build": "grunt release",
     "emit": "tsc",
@@ -28,11 +28,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/jseremba/ReactTags"
+    "url": "https://github.com/mendixlabs/tag"
   },
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/jseremba/ReactTags/issues"
+    "url": "https://github.com/mendixlabs/tag/issues"
   },
   "devDependencies": {
     "@types/classnames": "^2.2.1",

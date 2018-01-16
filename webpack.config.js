@@ -15,7 +15,7 @@ const widgetConfig = {
         libraryTarget: "umd"
     },
     resolve: {
-        extensions: [ ".ts", ".js", ".json" ],
+        extensions: [ ".ts", ".js" ],
         alias: {
             "tests": path.resolve(__dirname, "./tests")
         }
@@ -23,14 +23,25 @@ const widgetConfig = {
     module: {
         rules: [
             { test: /\.ts$/, use: "ts-loader" },
-            { test: /\.css$/, loader: ExtractTextPlugin.extract({
-                fallback: "style-loader",
-                use: "css-loader"
-            }) },
-            { test: /\.scss$/, loader: ExtractTextPlugin.extract({
-                fallback: "style-loader",
-                use: "css-loader!sass-loader"
-            }) }
+            {
+                test: /\.css$/, loader: ExtractTextPlugin.extract({
+                    fallback: "style-loader",
+                    use: "css-loader"
+                }) 
+            },
+            { 
+                test: /\.scss$/, loader: ExtractTextPlugin.extract({
+                    fallback: "style-loader",
+                    use: "css-loader!sass-loader"
+                }) 
+            },
+            {
+                test: /\.gif$/,
+                use: [ {
+                    loader: "url-loader",
+                    options: { limit: 8192 }
+                } ]
+            }
         ]
     },
     devtool: "source-map",

@@ -8,10 +8,10 @@ import { AutoComplete, AutoCompleteProps } from "../AutoComplete";
 describe("AutoComplete", () => {
     const renderAutoComplete = (props: AutoCompleteProps) => shallow(createElement(AutoComplete, props));
     const defaultProps: AutoCompleteProps = {
-        addTag: () => { /* */ },
+        addTag: () => jasmine.any(Function),
         inputPlaceholder: "",
         lazyLoad: false,
-        suggestions: []
+        suggestions: [ ]
     };
 
     it("renders the structure correctly", () => {
@@ -30,17 +30,17 @@ describe("AutoComplete", () => {
         );
     });
 
-    it("fetches the suggestions when value is specified", () => {
+    it("fetches suggestions when value is specified", () => {
         const suggestion = {
-            name: "Uganda",
-            newValue: "Netherlands",
-            suggestionValue: "Uganda",
-            value: "Uganda",
-            method: "enter"
+            name: "testValue",
+            newValue: "testValue",
+            suggestionValue: "testValue",
+            value: "testValue",
+            method: ""
         };
         const autoComplete = renderAutoComplete(defaultProps);
-
         const autoCompleteInstance = autoComplete.instance() as any;
+
         autoCompleteInstance.onSuggestionsFetchRequested(suggestion);
         autoCompleteInstance.getSuggestions(suggestion);
         autoCompleteInstance.onSuggestionSelected(jasmine.any(Event), suggestion);
@@ -48,45 +48,50 @@ describe("AutoComplete", () => {
         expect(autoComplete.state().value).toEqual("");
     });
 
-    it("renders the fetched suggestions", () => {
-        const autoComplete = renderAutoComplete(defaultProps);
-
-        const autoCompleteInstance = autoComplete.instance() as any;
-        autoCompleteInstance.getSuggestionValue(defaultProps.suggestions);
-        autoCompleteInstance.renderSuggestion({
-            name: "",
-            value: ""
-        });
-    });
-
-    it("updates the suggestions", () => {
-        const newProps: AutoCompleteProps = {
-            addTag: jasmine.any(Function),
-            inputPlaceholder:  "",
-            lazyLoad: false,
-            suggestions: [ {
-                    name: "Canada", value: "Canada", newValue: "Uganda", suggestionValue: "U", method: "enter"
-                } ]
-        };
-        const autoComplete = renderAutoComplete(defaultProps);
-
-        const autoCompleteInstance = autoComplete.instance() as any;
-        autoComplete.setState({ suggestions: newProps.suggestions });
-        autoCompleteInstance.getSuggestions(newProps.suggestions[0]);
-        autoCompleteInstance.componentDidMount();
-        autoCompleteInstance.componentWillReceiveProps(newProps);
-        autoCompleteInstance.hundleOnChange(jasmine.any(Event), newProps.suggestions[0]);
-        autoCompleteInstance.componentWillUnmount();
-
-        expect(autoComplete.state().suggestions.length).toEqual(1);
-    });
-
     it("clears the suggestions when there is no value specified", () => {
         const autoComplete = renderAutoComplete(defaultProps);
-
         const autoCompleteInstance = autoComplete.instance() as any;
         autoCompleteInstance.onSuggestionsClearRequested();
 
         expect(autoComplete.state().suggestions).toEqual([]);
+    });
+
+    xit("should lazyload suggestion when lazyloading is set to true", () => {
+        const newProps: AutoCompleteProps = {
+            ...defaultProps,
+            fetchSuggestions: () => jasmine.any(Function) as any,
+            lazyLoad: true
+        };
+        const suggestions = {
+            name: "Canada", value: "Canada", newValue: "Uganda",
+            suggestionValue: "C", method: "type"
+        };
+        const autoComplete = renderAutoComplete(newProps);
+        const autoCompleteInstance = autoComplete.instance() as any;
+        const fetchSuggestionSpy = spyOn(autoCompleteInstance, "fetchSuggestions").and.callThrough();
+
+        autoCompleteInstance.onSuggestionsFetchRequested(suggestions);
+        autoCompleteInstance.renderSuggestion(newProps);
+        autoCompleteInstance.getSuggestionValue(suggestions);
+        const suggestionList = autoComplete.find(".react-autosuggest__suggestions-list");
+
+        expect(suggestionList.length).toBeGreaterThan(0);
+        setTimeout(() => {
+            expect(fetchSuggestionSpy).toHaveBeenCalled();
+        }, 1000);
+    });
+
+    it("adds a new tag while from selected suggestion", () => {
+        const suggestions = {
+            name: "Canada", value: "Canada", newValue: "Uganda",
+            suggestionValue: "U", method: "type"
+        };
+        spyOn(defaultProps, "addTag").and.callThrough();
+
+        const autoComplete = renderAutoComplete(defaultProps);
+        const autoCompleteInstance = autoComplete.instance() as any;
+        autoCompleteInstance.onSuggestionSelected(jasmine.any(Event), suggestions);
+
+        expect(defaultProps.addTag).toHaveBeenCalledTimes(1);
     });
 });

@@ -1,8 +1,8 @@
 import HomePage from "./pages/home.page";
-import SuggestionsPage from "./pages/suggestions.page";
+import Suggestions from "./pages/suggestions.page";
 
-const testValue = "testValue";
-const removeValue = "foo";
+const test1 = "test1";
+const test2 = "test2";
 
 describe("TagInput", () => {
 
@@ -10,22 +10,12 @@ describe("TagInput", () => {
         HomePage.open();
         HomePage.textInput.waitForVisible();
         HomePage.textInput.click();
-        HomePage.textInput.setValue(testValue);
+        HomePage.textInput.setValue(test1);
 
         browser.keys("Enter");
         HomePage.tagsContainer.waitForVisible();
 
-        expect(HomePage.tagsContainer.getText()).toContain(testValue);
-    });
-
-    it("should show suggestions when need", () => {
-        SuggestionsPage.openSuggestion();
-        SuggestionsPage.TestInput.waitForVisible();
-        SuggestionsPage.TestInput.click();
-        SuggestionsPage.TestInput.setValue("te");
-        SuggestionsPage.suggestionList.waitForVisible();
-
-        expect(SuggestionsPage.suggestionList.getText()).toContain(testValue);
+        expect(HomePage.tagsContainer.getText()).toContain(test1);
     });
 
     it("should remove a tag if exists", () => {
@@ -33,7 +23,7 @@ describe("TagInput", () => {
         HomePage.textInput.waitForVisible();
         HomePage.textInput.click();
 
-        HomePage.textInput.setValue(removeValue);
+        HomePage.textInput.setValue(test2);
         browser.keys("Enter");
         HomePage.textInput.click();
 
@@ -41,6 +31,19 @@ describe("TagInput", () => {
         browser.keys("Backspace");
         HomePage.tagsContainer.waitForVisible();
 
-        expect(HomePage.tagsContainer.getText()).not.toContain(removeValue);
+        expect(HomePage.tagsContainer.getText()).not.toContain(test2);
+    });
+
+    it("should show suggestions when user starts typing", () => {
+        const result = test2.charAt(0);
+
+        Suggestions.openSuggestion();
+        Suggestions.TestInput.waitForVisible();
+        Suggestions.TestInput.click();
+        Suggestions.TestInput.setValue(result);
+        Suggestions.suggestionList.waitForVisible(1000);
+
+        const suggestionList = Suggestions.suggestionList.getText();
+        expect(suggestionList).toContain(test2);
     });
 });
