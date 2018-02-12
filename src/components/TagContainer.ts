@@ -33,7 +33,6 @@ export interface TagContainerState {
     suggestions: string[];
     lazyLoaded: boolean;
     fetchTags: boolean;
-    reloadTagsOnRemove: boolean;
     tagList: string[];
     newTag: string;
     tagCache: mendix.lib.MxObject[];
@@ -51,7 +50,6 @@ export default class TagContainer extends Component<TagContainerProps, TagContai
             fetchTags: false,
             isReference: false,
             newTag: "",
-            reloadTagsOnRemove: false,
             suggestions: [],
             lazyLoaded: false,
             tagCache: [],
@@ -98,7 +96,6 @@ export default class TagContainer extends Component<TagContainerProps, TagContai
 
     private isReadOnly() {
         const { editable, mxObject, readOnly } = this.props;
-
         if (editable === "default" && mxObject) {
             return readOnly;
         }
@@ -142,8 +139,8 @@ export default class TagContainer extends Component<TagContainerProps, TagContai
     }
 
     private lazyLoadSuggestions() {
-        this.setState({ lazyLoaded: true });
         this.fetchTags(this.props.mxObject);
+        this.setState({ lazyLoaded: true });
     }
 
     private fetchTags(mxObject: mendix.lib.MxObject) {
@@ -155,51 +152,61 @@ export default class TagContainer extends Component<TagContainerProps, TagContai
             const XPath = "//" + this.tagEntity + constraint;
 
             mx.data.get({
-                callback: object => this.processTags(object),
+                callback: objects => this.processTags(objects),
                 error: error =>
-                    window.mx.ui.error(`An error occurred while retrieving tags via XPath (${this.tagEntity}):
+                    window.mx.ui.error(`An error occurred while retrieving tags (${this.tagEntity}):
                 ${error.message}`),
                 xpath: XPath
             });
         }
     }
 
-    private processTags(tagObjects: mendix.lib.MxObject[]) {
-        const currentTags: mendix.lib.MxObject[] = [];
+    private processTags(tagData: mendix.lib.MxObject[]) {
         const referenceTags = this.props.mxObject.getReferences(this.referenceAttribute) as string[];
-        const getSuggestions = tagObjects.map(object => ({ value: object.get(this.props.tagAttribute) as string }));
+        const getSuggestions = tagData.map(object => ({ value: object.get(this.props.tagAttribute) as string }));
+        const currentTags = this.getCurrentTags(tagData, referenceTags);
+        const getTags = currentTags !== []
+        ? currentTags.map(object => ({ value: object.get(this.props.tagAttribute) as string }))
+        : [];
 
-        tagObjects.map(object => {
-            if (referenceTags.toString() !== "") {
-                referenceTags.map(reference => {
-                    if (reference === object.getGuid()) {
+        this.setState({
+            fetchTags: true,
+            tagCache: tagData,
+            tagList: getTags.map(tag => tag.value),
+            suggestions: getSuggestions.map(suggestion => suggestion.value)
+        });
+    }
+
+    private getCurrentTags(objects: mendix.lib.MxObject[], availableTags: string[]): mendix.lib.MxObject[] {
+        const currentTags: mendix.lib.MxObject[] = [];
+
+        objects.map(object => {
+            if (availableTags.length > 0) {
+                availableTags.forEach(tagGuid => {
+                    if (tagGuid === object.getGuid()) {
                         currentTags.push(object);
                     }
                 });
             }
         });
-        const getTags = currentTags !== []
-        ? currentTags.map(object => ({ value: object.get(this.props.tagAttribute) as string }))
-        : [];
-        this.setState({
-            fetchTags: true,
-            tagCache: tagObjects,
-            tagList: getTags.map(tag => tag.value),
-            suggestions: getSuggestions.map(suggestion => suggestion.value)
-        });
+
+        return currentTags;
     }
 
     private createTag(newTag: string) {
         const { afterCreateMicroflow, onChangeMicroflow, mxObject } = this.props;
         const tagList = this.state.tagList;
 
+        // Check if newTag exists in the database
         for (const object of this.state.tagCache) {
-            const tagValue = object.get(this.props.tagAttribute) as string;
-            if (newTag === tagValue && newTag.trim() !== "") {
+            const existingTag = object.get(this.props.tagAttribute) as string;
+            if (newTag !== "" && newTag === existingTag) {
                 tagList.push(newTag);
-                mxObject.addReference(this.referenceAttribute, object.getGuid());
-                this.saveTagData(mxObject);
                 this.setState({ tagList });
+                if (!mxObject.isReference(object.getGuid())) {
+                    mxObject.addReference(this.referenceAttribute, object.getGuid());
+                    this.saveChanges(mxObject);
+                }
 
                 return;
             }
@@ -210,7 +217,7 @@ export default class TagContainer extends Component<TagContainerProps, TagContai
                 mx.data.commit({
                     callback: () => {
                         mxObject.addReference(this.referenceAttribute, object.getGuid());
-                        this.saveTagData(mxObject);
+                        this.saveChanges(mxObject);
                         if (afterCreateMicroflow || onChangeMicroflow) {
                             this.executeAction(mxObject, afterCreateMicroflow);
                             this.executeAction(mxObject, onChangeMicroflow);
@@ -229,37 +236,39 @@ export default class TagContainer extends Component<TagContainerProps, TagContai
     }
 
     private removeTag(value: string) {
-        if (value.trim() !== "") {
-            const { onChangeMicroflow, mxObject } = this.props;
+        if (value) {
             const tagIndex = this.state.tagList.indexOf(value);
             const tagList = this.state.tagList.slice();
-
-            mx.data.get({
-                callback: (object) => {
-                    if (onChangeMicroflow) {
-                        this.executeAction(mxObject, onChangeMicroflow);
-                    }
-                    mxObject.removeReferences(this.referenceAttribute, object[0].getGuid() as any);
-                    this.saveTagData(mxObject);
-                },
-                error: error => `${error.message}`,
-                xpath: `//${this.tagEntity}[ ${this.props.tagAttribute} = '${value}' ]`
-            });
+            const removeCount = setTimeout(this.removeReference(value), 1000);
 
             tagList.splice(tagIndex, 1);
             this.setState({
                 alertMessage: "",
-                reloadTagsOnRemove: true,
                 tagList: tagIndex !== -1 ? tagList : this.state.tagList
             });
+            window.clearTimeout(removeCount);
         }
     }
 
-    private saveTagData(object: mendix.lib.MxObject) {
-        mx.data.commit({
-            mxobj: object,
-            callback: () => undefined
+    private removeReference(tag: string) {
+        const { onChangeMicroflow, mxObject } = this.props;
+        const xpath = `//${this.tagEntity}[ ${this.props.tagAttribute} = '${tag}' ]`;
+
+        mx.data.get({
+            callback: (object) => {
+                mxObject.removeReferences(this.referenceAttribute, [ object[0].getGuid() ]);
+                this.saveChanges(mxObject);
+                if (onChangeMicroflow) {
+                    this.executeAction(mxObject, onChangeMicroflow);
+                }
+            },
+            error: error => `${error.message}`,
+            xpath
         });
+    }
+
+    private saveChanges(object: mendix.lib.MxObject) {
+        mx.data.commit({ mxobj: object, callback: () => null });
     }
 
     private executeAction(mxObject: mendix.lib.MxObject, action?: string) {

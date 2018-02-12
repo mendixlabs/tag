@@ -23,7 +23,6 @@ export interface AutoCompleteProps {
 }
 
 interface AutoCompleteState {
-    lazyLoaded: boolean;
     newValue: string;
     suggestions: Suggestion[];
     suggestionsLazyLoaded: Suggestion[];
@@ -38,7 +37,6 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         super(props);
 
         this.state = {
-            lazyLoaded: false,
             newValue: "",
             suggestions: [],
             suggestionsLazyLoaded: [],
@@ -88,9 +86,7 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
     }
 
     componentWillReceiveProps(newProps: AutoCompleteProps) {
-        this.setState({
-            suggestionsLazyLoaded: newProps.suggestions
-        });
+        this.setState({ suggestionsLazyLoaded: newProps.suggestions });
     }
 
     componentWillUnmount() {
@@ -139,13 +135,13 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
     }
 
     private handleOnChange(_event: Event, inputObject: Suggestion) {
-        if (inputObject.method === "type" && this.props.lazyLoad && !this.state.lazyLoaded) {
+        if (inputObject.method === "type" && this.props.lazyLoad) {
             this.suggestionContainer.classList.add("loader");
             setTimeout(() => {
                 this.fetchSuggestions(this.props);
                 this.suggestionContainer.classList.remove("loader");
             }, 1000);
-            this.setState({ lazyLoaded: true, value: inputObject.newValue });
+            this.setState({ value: inputObject.newValue });
         } else {
             this.setState({ value: inputObject.newValue });
         }
@@ -226,7 +222,7 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
             spanContainer.classList.remove(focus);
         }
         // Add tag
-        if (suggestionInput.defaultValue.trim() !== "") {
+        if (suggestionInput.defaultValue) {
             this.props.addTag(suggestionInput.defaultValue);
             this.setState({ value: "" });
         }
@@ -237,11 +233,11 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         const keyPress = event as KeyboardEvent;
         const { onRemove, tagList } = this.props;
 
-        if (keyPress.code === "Enter" && keyPress.keyCode === 13 && input.defaultValue.trim() !== "") {
+        if (keyPress.code === "Enter" && keyPress.keyCode === 13 && input.defaultValue) {
             this.props.addTag(input.defaultValue);
             this.setState({ value: "" });
         } else if (keyPress.key === "Backspace" && keyPress.keyCode === 8 && onRemove && tagList) {
-            if (tagList.length > 0 && input.defaultValue.trim() === "") {
+            if (tagList.length > 0 && !input.defaultValue) {
                 const tagToRemove = tagList.slice(-1).toString();
                 onRemove(tagToRemove);
             }

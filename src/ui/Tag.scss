@@ -8,7 +8,6 @@
             padding: 0px 5px;
             cursor: text;
             display: block;
-            height: 40px;
         }
 
         .tag-container-readOnly {
@@ -36,6 +35,7 @@
             font-family: "Open Sans", sans-serif;
             border-radius: 3px;
             border: none;
+            margin-top: 5px;
         }
 
         .react-tagsinput--focused {
@@ -125,10 +125,10 @@
               opacity: 0;
             }
           }
-    }
 
-    .alert-danger {
-        padding: 10px;
+        .alert {
+            margin-top: 8px;
+        }
     }
 
 @import "tag-theme";

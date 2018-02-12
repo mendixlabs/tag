@@ -92,17 +92,14 @@ export class Tag extends Component<TagProps, TagState> {
     }
 
     componentWillReceiveProps(newProps: TagProps) {
-        if (newProps.tagLimit > 0 && newProps.tagList.length > newProps.tagLimit) {
-            this.setState({
-                alertMessage: newProps.tagLimitMessage.replace("{limit}", `${newProps.tagLimit}`),
-                tagList: newProps.tagList
-            });
-        } else {
-            this.setState({
-                alertMessage: newProps.alertMessage,
-                tagList: newProps.tagList
-            });
-        }
+        const alertMessage = newProps.tagLimitMessage.replace("{limit}", `${newProps.tagLimit}`);
+
+        this.setState({
+            alertMessage: (newProps.tagLimit > 0 && newProps.tagList.length > newProps.tagLimit)
+                ? alertMessage
+                : newProps.alertMessage,
+            tagList: newProps.tagList
+        });
     }
 
     componentWillUnmount() {
@@ -134,46 +131,27 @@ export class Tag extends Component<TagProps, TagState> {
 
     private handleChange(tagList: string[], changed: string[]) {
         if (this.props.onRemove && this.state.tagList.length > tagList.length) {
-            this.props.onRemove(changed[0]);
-            this.setState({
-                alertMessage: "",
-                tagList
-            });
-        } else { this.processTag(changed[0]); }
+            this.props.onRemove(changed.toString());
+            this.setState({ alertMessage: "", tagList });
+        } else {
+            this.processTag(changed.toString());
+        }
     }
 
     private processTag(newTag: string) {
         const { tagLimit, tagLimitMessage, createTag } = this.props;
+        const duplicateTag = this.state.tagList.filter(oldTag => oldTag === newTag);
 
         if (tagLimit === 0 || this.state.tagList.length < tagLimit) {
-            // Validate tag if its not a duplicate.
-            if (this.validateTagInput(newTag, this.state.tagList)) {
-                this.setState ({
-                    alertMessage: `Duplicate ${newTag}`,
-                    newTag
-                });
+            if (duplicateTag.length > 0) {
+                this.setState({ alertMessage: `Duplicate ${newTag}`, newTag });
             } else if (createTag) {
-                this.setState({
-                    alertMessage: ""
-                });
+                this.setState({ alertMessage: "" });
                 createTag(newTag);
             }
         } else {
-            this.setState ({ alertMessage: tagLimitMessage.replace("{limit}", `${tagLimit}`) });
+            this.setState({ alertMessage: tagLimitMessage.replace("{limit}", `${tagLimit}`), newTag });
         }
-    }
-
-    private validateTagInput = (newTag: string, existingTags: string[]): boolean => {
-        let valid = false;
-
-        for (const tagValue of existingTags) {
-            if (tagValue.localeCompare(newTag) === 0) {
-                valid = true;
-                break;
-            }
-        }
-
-        return valid;
     }
 
     private addEvents(nodes: NodeListOf<Element>) {
