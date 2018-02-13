@@ -1,4 +1,4 @@
-import { shallow } from "enzyme";
+import { mount, shallow } from "enzyme";
 import { createElement } from "react";
 
 import * as Autosuggest from "react-autosuggest";
@@ -7,6 +7,7 @@ import { AutoComplete, AutoCompleteProps } from "../AutoComplete";
 
 describe("AutoComplete", () => {
     const renderAutoComplete = (props: AutoCompleteProps) => shallow(createElement(AutoComplete, props));
+    const fullRenderAutoComplete = (props: AutoCompleteProps) => mount(createElement(AutoComplete, props));
     const defaultProps: AutoCompleteProps = {
         addTag: () => jasmine.any(Function),
         inputPlaceholder: "",
@@ -32,11 +33,11 @@ describe("AutoComplete", () => {
 
     it("fetches suggestions when value is specified", () => {
         const suggestion = {
+            method: "",
             name: "testValue",
             newValue: "testValue",
             suggestionValue: "testValue",
-            value: "testValue",
-            method: ""
+            value: "testValue"
         };
         const autoComplete = renderAutoComplete(defaultProps);
         const autoCompleteInstance = autoComplete.instance() as any;
@@ -56,35 +57,40 @@ describe("AutoComplete", () => {
         expect(autoComplete.state().suggestions).toEqual([]);
     });
 
-    xit("should lazyload suggestion when lazyloading is set to true", () => {
+    it("should lazyload suggestions suggestions and lazyloading are enabled", () => {
         const newProps: AutoCompleteProps = {
             ...defaultProps,
             fetchSuggestions: () => jasmine.any(Function) as any,
             lazyLoad: true
         };
-        const suggestions = {
-            name: "Canada", value: "Canada", newValue: "Uganda",
-            suggestionValue: "C", method: "type"
-        };
-        const autoComplete = renderAutoComplete(newProps);
+
+        const suggestionValue = [ { method: "", name: "Uganda", newValue: "", suggestionValue: "", value: "" } ];
+        const suggestions = [ { method: "", name: "Tanzania", newValue: "", suggestionValue: "", value: "" },
+        { method: "", name: "Uganda", newValue: "", suggestionValue: "", value: "" },
+        { method: "", name: "Kenya", newValue: "", suggestionValue: "", value: "" } ];
+
+        const autoComplete = fullRenderAutoComplete(newProps);
         const autoCompleteInstance = autoComplete.instance() as any;
-        const fetchSuggestionSpy = spyOn(autoCompleteInstance, "fetchSuggestions").and.callThrough();
+        const onChangeSpy = spyOn(autoCompleteInstance, "handleOnChange").and.callThrough();
+        const renderSuggestions = spyOn(autoCompleteInstance, "renderSuggestion").and.callThrough();
 
+        autoCompleteInstance.componentWillReceiveProps(newProps);
+        autoCompleteInstance.fetchSuggestions(newProps);
+        autoComplete.find("input").simulate("change", { target: { value: "U" } });
         autoCompleteInstance.onSuggestionsFetchRequested(suggestions);
-        autoCompleteInstance.renderSuggestion(newProps);
-        autoCompleteInstance.getSuggestionValue(suggestions);
-        const suggestionList = autoComplete.find(".react-autosuggest__suggestions-list");
+        autoCompleteInstance.getSuggestions(suggestions);
+        autoCompleteInstance.renderSuggestion(suggestions);
+        autoCompleteInstance.getSuggestionValue(suggestionValue);
 
-        expect(suggestionList.length).toBeGreaterThan(0);
-        setTimeout(() => {
-            expect(fetchSuggestionSpy).toHaveBeenCalled();
-        }, 1000);
+        expect(onChangeSpy).toHaveBeenCalled();
+        expect(renderSuggestions).toHaveBeenCalled();
+        autoCompleteInstance.componentWillUnmount();
     });
 
     it("adds a new tag while from selected suggestion", () => {
         const suggestions = {
-            name: "Canada", value: "Canada", newValue: "Uganda",
-            suggestionValue: "U", method: "type"
+            method: "type", name: "Canada", newValue: "Uganda",
+            suggestionValue: "U", value: "Canada"
         };
         spyOn(defaultProps, "addTag").and.callThrough();
 

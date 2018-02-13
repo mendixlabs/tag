@@ -20,14 +20,14 @@ export class preview extends Component<TagContainerProps, {}> {
 
         return {
             inputPlaceholder: props.inputPlaceholder,
+            newTag: "",
             readOnly: props.editable === "never",
+            style: {},
+            suggestions: [ ],
             tagLimit: props.tagLimit,
             tagLimitMessage: props.tagLimitMessage,
             tagList: [ "tag1", "tag2" ],
-            tagStyle: props.tagStyle,
-            newTag: "",
-            style: {},
-            suggestions: [ ]
+            tagStyle: props.tagStyle
         };
     }
 }

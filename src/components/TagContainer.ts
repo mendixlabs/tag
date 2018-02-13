@@ -49,9 +49,9 @@ export default class TagContainer extends Component<TagContainerProps, TagContai
         this.state = {
             fetchTags: false,
             isReference: false,
+            lazyLoaded: false,
             newTag: "",
             suggestions: [],
-            lazyLoaded: false,
             tagCache: [],
             tagList: []
         };
@@ -67,13 +67,12 @@ export default class TagContainer extends Component<TagContainerProps, TagContai
     render() {
         return createElement(Tag, {
             alertMessage: this.state.alertMessage,
-            tagStyle: this.props.tagStyle,
             className: this.props.class,
             createTag: this.createTag,
             enableSuggestions: this.props.enableSuggestions,
+            fetchSuggestions: this.lazyLoadSuggestions,
             inputPlaceholder: this.props.inputPlaceholder,
             lazyLoad: this.props.lazyLoad,
-            fetchSuggestions: this.lazyLoadSuggestions,
             newTag: this.state.newTag,
             onRemove: this.removeTag,
             readOnly: this.isReadOnly(),
@@ -81,7 +80,8 @@ export default class TagContainer extends Component<TagContainerProps, TagContai
             suggestions: this.state.suggestions,
             tagLimit: this.props.tagLimit,
             tagLimitMessage: this.props.tagLimitMessage,
-            tagList: this.state.tagList
+            tagList: this.state.tagList,
+            tagStyle: this.props.tagStyle
         });
     }
 
@@ -93,6 +93,15 @@ export default class TagContainer extends Component<TagContainerProps, TagContai
     componentWillUnmount() {
         this.subscriptionHandles.forEach(mx.data.unsubscribe);
     }
+
+    // private isReadOnly() {
+    //     const { booleanAttribute, editable, mxObject, readOnly } = this.props;
+    //     if (editable === "default" && mxObject) {
+    //         return readOnly || mxObject.isReadonlyAttr(booleanAttribute);
+    //     }
+
+    //     return true;
+    // }
 
     private isReadOnly() {
         const { editable, mxObject, readOnly } = this.props;
@@ -110,8 +119,8 @@ export default class TagContainer extends Component<TagContainerProps, TagContai
             this.subscriptionHandles.push(mx.data.subscribe({
                 callback: guid => {
                     mx.data.get({
-                        guid: guid.toString(),
-                        callback: object => this.fetchTags(object)
+                        callback: object => this.fetchTags(object),
+                        guid: guid.toString()
                     });
                 },
                 guid: mxObject.getGuid()
@@ -121,19 +130,19 @@ export default class TagContainer extends Component<TagContainerProps, TagContai
                 attr: this.referenceAttribute,
                 callback: guid => {
                     mx.data.get({
-                        guid: guid.toString(),
-                        callback: object => this.fetchTags(object)
+                        callback: object => this.fetchTags(object),
+                        guid: guid.toString()
                     });
                 },
                 guid: mxObject.getGuid()
             }));
 
             this.subscriptionHandles.push(mx.data.subscribe({
-                guid: mxObject.getGuid(),
-                val: true,
                 callback: validations => {
                     window.mx.ui.error(validations[0].getErrorReason(this.referenceAttribute));
-                }
+                },
+                guid: mxObject.getGuid(),
+                val: true
             }));
         }
     }
@@ -171,9 +180,9 @@ export default class TagContainer extends Component<TagContainerProps, TagContai
 
         this.setState({
             fetchTags: true,
+            suggestions: getSuggestions.map(suggestion => suggestion.value),
             tagCache: tagData,
-            tagList: getTags.map(tag => tag.value),
-            suggestions: getSuggestions.map(suggestion => suggestion.value)
+            tagList: getTags.map(tag => tag.value)
         });
     }
 
@@ -274,12 +283,12 @@ export default class TagContainer extends Component<TagContainerProps, TagContai
     private executeAction(mxObject: mendix.lib.MxObject, action?: string) {
         if (action) {
             window.mx.ui.action(action, {
+                error: error => window.mx.ui.error(`Error while executing microflow: ${action}: ${error.message}`),
                 origin: this.props.mxform,
                 params: {
-                    guids: [ mxObject.getGuid() ],
-                    applyto: "selection"
-                },
-                error: error => window.mx.ui.error(`Error while executing microflow: ${action}: ${error.message}`)
+                    applyto: "selection",
+                    guids: [ mxObject.getGuid() ]
+                }
             });
         }
     }

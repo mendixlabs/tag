@@ -71,8 +71,8 @@ export class Tag extends Component<TagProps, TagState> {
                 disabled: this.props.readOnly,
                 inputProps,
                 inputValue: this.state.newTag,
-                onChangeInput: this.handleChangeInput,
                 onChange: this.handleChange,
+                onChangeInput: this.handleChangeInput,
                 renderInput: this.props.enableSuggestions ? this.renderAutoComplete : undefined,
                 value: this.state.tagList
             }),
@@ -117,9 +117,9 @@ export class Tag extends Component<TagProps, TagState> {
             addTag: (tag: string) => this.processTag(tag),
             fetchSuggestions: this.props.fetchSuggestions,
             inputPlaceholder: this.props.inputPlaceholder,
-            readOnly: this.props.readOnly,
             lazyLoad: this.props.lazyLoad,
             onRemove: this.props.onRemove,
+            readOnly: this.props.readOnly,
             suggestions: processSuggestions(this.props.suggestions, this.props.tagList),
             tagList: this.state.tagList
         });

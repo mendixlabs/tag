@@ -15,14 +15,14 @@ describe("TagsInput", () => {
         enableSuggestions: false,
         inputPlaceholder:  "",
         lazyLoad: false,
+        newTag: "",
         readOnly: false,
         style: undefined,
+        suggestions: [],
         tagLimit: 5,
         tagLimitMessage: "",
         tagList: [],
-        tagStyle: "primary",
-        newTag: "",
-        suggestions: []
+        tagStyle: "primary"
     };
 
     const inputProps = {
@@ -43,8 +43,8 @@ describe("TagsInput", () => {
                 style: defaultProps.style
             }, createElement(TagsInput, {
                 addOnBlur: true, addOnPaste: true, className: "tag-container",
-                disabled: false, inputProps, inputValue: "", onChangeInput: jasmine.any(Function) as any,
-                onChange: jasmine.any(Function) as any, renderInput: jasmine.any(Function) as any, value: []
+                disabled: false, inputProps, inputValue: "", onChange: jasmine.any(Function) as any,
+                onChangeInput: jasmine.any(Function) as any, renderInput: jasmine.any(Function) as any, value: []
             }), createElement(Alert, {
                 bootstrapStyle: "danger",
                 className: "widget-tag-alert",
@@ -99,7 +99,7 @@ describe("TagsInput", () => {
         }, 1000);
     });
 
-    it("renders suggestions when they are enabled", () => {
+    it("show suggestions if they are enabled", () => {
         const tag = fullRenderTag(defaultProps);
         const autoCompleteSpy = spyOn(tag.instance() as any, "renderAutoComplete").and.callThrough();
 

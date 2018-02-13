@@ -23,6 +23,7 @@ export interface AutoCompleteProps {
 }
 
 interface AutoCompleteState {
+    lazyloaded: boolean;
     newValue: string;
     suggestions: Suggestion[];
     suggestionsLazyLoaded: Suggestion[];
@@ -37,6 +38,7 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         super(props);
 
         this.state = {
+            lazyloaded: false,
             newValue: "",
             suggestions: [],
             suggestionsLazyLoaded: [],
@@ -82,16 +84,25 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
         if (this.node.firstElementChild) {
             this.suggestionContainer = this.node.firstElementChild.nextElementSibling as Element;
         }
-        this.addEventListener(suggestionInput);
+        if (suggestionInput) {
+            this.addEventListener(suggestionInput);
+        }
     }
 
     componentWillReceiveProps(newProps: AutoCompleteProps) {
-        this.setState({ suggestionsLazyLoaded: newProps.suggestions });
+        if (newProps.lazyLoad && !this.state.lazyloaded) {
+            this.setState({
+                lazyloaded: true,
+                suggestionsLazyLoaded: newProps.suggestions
+            });
+        }
     }
 
     componentWillUnmount() {
         const suggestionInput = this.node.querySelectorAll(".react-autosuggest__input");
-        this.removeEventsListeners(suggestionInput);
+        if (suggestionInput) {
+            this.removeEventsListeners(suggestionInput);
+        }
     }
 
     // Call this function every time you need to update suggestions in state.
@@ -101,7 +112,10 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
 
     // Calculate suggestions from the input value.
     private getSuggestions(suggestion: Suggestion) {
-        const inputValue = suggestion.value.trim().toLowerCase();
+        let inputValue = "";
+        if (suggestion.value) {
+            inputValue = suggestion.value.trim().toLowerCase();
+        }
         const inputLength = inputValue.length;
         const { suggestionsLazyLoaded } = this.state;
 
@@ -117,7 +131,7 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
 
     // When suggestion is clicked, Teach Autosuggest how to calculate the
     // input value for every given suggestion.
-    private getSuggestionValue(suggestion: Suggestion) {
+    private getSuggestionValue(suggestion: Suggestion): string {
         return suggestion.name;
     }
 
@@ -160,10 +174,14 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
             const suggestionSpan = suggestionContainer.parentNode as HTMLElement;
             const tagContainer = suggestionSpan.parentNode as HTMLElement;
 
-            tagContainer.addEventListener("focus", this.hundleContainerFocus, true);
-            tagContainer.addEventListener("click", this.hundleClick, true);
-            node.addEventListener("keydown", this.handleKeyPress, true);
-            node.addEventListener("focus", this.handleFocus, true);
+            if (tagContainer) {
+                tagContainer.addEventListener("focus", this.hundleContainerFocus, true);
+                tagContainer.addEventListener("click", this.hundleClick, true);
+            }
+            if (node) {
+                node.addEventListener("keydown", this.handleKeyPress, true);
+                node.addEventListener("focus", this.handleFocus, true);
+            }
         }
     }
 
@@ -174,10 +192,14 @@ export class AutoComplete extends Component<AutoCompleteProps, AutoCompleteState
             const suggestionSpan = suggestionContainer.parentNode as HTMLElement;
             const tagContainer = suggestionSpan.parentNode as HTMLElement;
 
-            tagContainer.removeEventListener("focus", this.hundleContainerFocus, true);
-            tagContainer.removeEventListener("click", this.hundleClick, true);
-            node.removeEventListener("keydown", this.handleKeyPress, true);
-            node.removeEventListener("focus", this.handleFocus, true);
+            if (tagContainer) {
+                tagContainer.removeEventListener("focus", this.hundleContainerFocus, true);
+                tagContainer.removeEventListener("click", this.hundleClick, true);
+            }
+            if (node) {
+                node.removeEventListener("keydown", this.handleKeyPress, true);
+                node.removeEventListener("focus", this.handleFocus, true);
+            }
         }
     }
 
